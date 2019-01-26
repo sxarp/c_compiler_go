@@ -1,0 +1,8 @@
+version: '3'
+services:
+  main:
+    build: .
+    working_dir: /go/src/github.com/sxarp/c_compiler_go
+    command: tail -f /dev/null
+    volumes:
+      - ./:/go/src/github.com/sxarp/c_compiler_go
