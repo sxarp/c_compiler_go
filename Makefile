@@ -17,3 +17,6 @@ start:
 
 stop:
 	$(dc) down
+
+attach:
+	docker exec -it $$(docker ps -f name=c_compiler -q) /bin/bash
