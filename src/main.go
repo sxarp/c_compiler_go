@@ -1,37 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
+
+	"github.com/sxarp/c_compiler_go/src/str"
 )
 
 func main() {
 	r := ""
 	asm := compile(r)
 	fmt.Println(asm)
-}
-
-type strBuilder struct {
-	b bytes.Buffer
-}
-
-func (b *strBuilder) put(s string) *strBuilder {
-	b.b.WriteString(s)
-
-	return b
-}
-
-func (b *strBuilder) write(s string) {
-	b.put(fmt.Sprintf("%s\n", s))
-}
-
-func (b *strBuilder) str() string {
-	return b.b.String()
-}
-
-func (b *strBuilder) nr() {
-	b.write("")
 }
 
 type Reg struct {
@@ -78,24 +57,24 @@ type Ins struct {
 
 func (i Ins) str() string {
 
-	var sb strBuilder = strBuilder{}
-	sb.put("        ")
-	sb.put(i.ope.str())
+	var sb str.Builder = str.Builder{}
+	sb.Put("        ")
+	sb.Put(i.ope.str())
 
 	if i.dest.nil() {
-		return sb.str()
+		return sb.Str()
 	}
 
-	sb.put(" ").put(i.dest.str()).put(",")
+	sb.Put(" ").Put(i.dest.str()).Put(",")
 
 	if !i.srcR.nil() {
-		sb.put(" ").put(i.srcR.str())
-		return sb.str()
+		sb.Put(" ").Put(i.srcR.str())
+		return sb.Str()
 	}
 
-	sb.put(" ").put(fmt.Sprintf("%v", i.srcI))
+	sb.Put(" ").Put(fmt.Sprintf("%v", i.srcI))
 
-	return sb.str()
+	return sb.Str()
 }
 
 type Ini struct {
@@ -118,8 +97,8 @@ func (i Fin) str() string {
 	return i.i.str()
 }
 
-func (i Fin) Write(sb *strBuilder) {
-	sb.write(i.str())
+func (i Fin) Write(sb *str.Builder) {
+	sb.Write(i.str())
 }
 
 func I() Ini {
@@ -153,16 +132,16 @@ func (i Dested) Rax() Fin {
 	return Fin{i: i.i}
 }
 
-func prec(sb *strBuilder) {
-	sb.nr()
-	sb.write(".intel_syntax noprefix")
-	sb.write(".global main")
-	sb.nr()
+func prec(sb *str.Builder) {
+	sb.Nr()
+	sb.Write(".intel_syntax noprefix")
+	sb.Write(".global main")
+	sb.Nr()
 
 }
 func compile(code string) string {
 
-	var sb strBuilder = strBuilder{}
+	var sb str.Builder = str.Builder{}
 
 	prec(&sb)
 
@@ -170,11 +149,11 @@ func compile(code string) string {
 		panic("failed to parse code!")
 
 	} else {
-		sb.write("main:")
+		sb.Write("main:")
 		I().Mov().Rax().Val(i).Write(&sb)
 		I().Ret().Write(&sb)
 
 	}
 
-	return sb.str()
+	return sb.Str()
 }
