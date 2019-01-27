@@ -118,7 +118,7 @@ func (i Fin) str() string {
 	return i.i.str()
 }
 
-func (i Fin) write(sb *strBuilder) {
+func (i Fin) Write(sb *strBuilder) {
 	sb.write(i.str())
 }
 
@@ -171,8 +171,8 @@ func compile(code string) string {
 
 	} else {
 		sb.write("main:")
-		I().Mov().Rax().Val(i).write(&sb)
-		I().Ret().write(&sb)
+		I().Mov().Rax().Val(i).Write(&sb)
+		I().Ret().Write(&sb)
 
 	}
 

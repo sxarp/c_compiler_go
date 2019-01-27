@@ -55,15 +55,15 @@ main:
 	expects(t, expected, compile(r))
 }
 
-func TestStatusCode(t *testing.T) {
-	compare(t, "42", "42")
-	compare(t, "41", "41")
-	compare(t, "1", "1")
-
-}
-
 func TestIns(t *testing.T) {
 	expects(t, "        ret", I().Ret().str())
 	expects(t, "        mov rax, 42", I().Mov().Rax().Val(42).str())
 	expects(t, "        mov rax, rax", I().Mov().Rax().Rax().str())
+}
+
+func TestByCamperation(t *testing.T) {
+	compare(t, "42", "42")
+	compare(t, "41", "41")
+	compare(t, "1", "1")
+
 }
