@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 )
 
 func main() {
@@ -152,18 +153,28 @@ func (i Dested) Rax() Fin {
 	return Fin{i: i.i}
 }
 
-func compile(r string) string {
-
-	var sb strBuilder = strBuilder{}
-
+func prec(sb *strBuilder) {
 	sb.nr()
 	sb.write(".intel_syntax noprefix")
 	sb.write(".global main")
 	sb.nr()
-	sb.write("main:")
 
-	I().Mov().Rax().Val(42).write(&sb)
-	I().Ret().write(&sb)
+}
+func compile(code string) string {
+
+	var sb strBuilder = strBuilder{}
+
+	prec(&sb)
+
+	if i, err := strconv.Atoi(code); err != nil {
+		panic("failed to parse code!")
+
+	} else {
+		sb.write("main:")
+		I().Mov().Rax().Val(i).write(&sb)
+		I().Ret().write(&sb)
+
+	}
 
 	return sb.str()
 }

@@ -34,8 +34,14 @@ func execCode(t *testing.T, code string) string {
 	return res
 }
 
+func compare(t *testing.T, expected, code string) {
+
+	expects(t, expected, execCode(t, compile(code)))
+
+}
+
 func TestComp(t *testing.T) {
-	r := "4"
+	r := "42"
 
 	expected := `
 .intel_syntax noprefix
@@ -50,9 +56,9 @@ main:
 }
 
 func TestStatusCode(t *testing.T) {
-	asm := compile("42")
-
-	expects(t, execCode(t, asm), "42")
+	compare(t, "42", "42")
+	compare(t, "41", "41")
+	compare(t, "1", "1")
 
 }
 
