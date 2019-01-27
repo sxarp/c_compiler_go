@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/sxarp/c_compiler_go/src/str"
-
 	"github.com/sxarp/c_compiler_go/src/asm"
 )
 
@@ -15,28 +13,19 @@ func main() {
 	fmt.Println(asm)
 }
 
-func prec(sb *str.Builder) {
-	sb.Nr()
-	sb.Write(".intel_syntax noprefix")
-	sb.Write(".global main")
-	sb.Nr()
+func compile(tcode string) string {
 
-}
-func compile(code string) string {
+	acode := asm.New()
 
-	var sb str.Builder = str.Builder{}
-
-	prec(&sb)
-
-	if i, err := strconv.Atoi(code); err != nil {
+	if i, err := strconv.Atoi(tcode); err != nil {
 		panic("failed to parse code!")
 
 	} else {
-		sb.Write("main:")
-		asm.I().Mov().Rax().Val(i).Write(&sb)
-		asm.I().Ret().Write(&sb)
+		acode.Main().
+			Ins(asm.I().Mov().Rax().Val(i)).
+			Ins(asm.I().Ret())
 
 	}
 
-	return sb.Str()
+	return acode.Str()
 }
