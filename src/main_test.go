@@ -9,14 +9,14 @@ import (
 
 func expects(t *testing.T, expected, expect string) {
 	if expected != expect {
-		t.Errorf("Expected %s, got %s", expected, expect)
+		t.Errorf("Expected [%s], got [%s]", expected, expect)
 	}
 
 }
 
 func expectt(t *testing.T, expected, expect bool) {
 	if expected != expect {
-		t.Errorf("Expected %v, got %v", expected, expect)
+		t.Errorf("Expected [%v], got [%v].", expected, expect)
 	}
 
 }
@@ -66,5 +66,14 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "42", "42")
 	compare(t, "41", "41")
 	compare(t, "1", "1")
+	compare(t, "41", " 41 ")
+
+}
+
+func TestPreprocess(t *testing.T) {
+	expects(t, preprocess(""), "")
+	expects(t, preprocess("3"), "3")
+	expects(t, preprocess("3 "), "3")
+	expects(t, preprocess(" 12 3"), "123")
 
 }
