@@ -91,4 +91,10 @@ func TestTokenize(t *testing.T) {
 	ExpectToken(t, TMinus, "1-1234", "FAIL", "1-1234")
 	ExpectToken(t, TMinus, "", "FAIL", "")
 
+	ExpectToken(t, TInt, "1", "1", "")
+	ExpectToken(t, TInt, "123", "123", "")
+	ExpectToken(t, TInt, "123x", "123", "x")
+	ExpectToken(t, TInt, "x123", "FAIL", "x123")
+	ExpectToken(t, TInt, "", "FAIL", "")
+
 }

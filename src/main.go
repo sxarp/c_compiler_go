@@ -15,7 +15,7 @@ func main() {
 }
 
 type TokenType struct {
-	regex   regexp.Regexp
+	regex   *regexp.Regexp
 	literal string
 	vali    func(string) int
 }
@@ -49,12 +49,22 @@ func (tt *TokenType) match(s string) (Token, string) {
 		}
 	}
 
+	if tt.regex != nil {
+		foundStr := tt.regex.FindString(s)
+		if foundStr != "" {
+			fsl := len(foundStr)
+			return Token{tt: tt, valp: &foundStr}, s[fsl:]
+		}
+	}
+
 	return Fail, s
 }
 
 var TPlus TokenType = TokenType{literal: "+"}
 
 var TMinus TokenType = TokenType{literal: "-"}
+
+var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+")}
 
 func compile(tcode string) string {
 
