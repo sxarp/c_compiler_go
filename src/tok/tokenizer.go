@@ -87,3 +87,13 @@ func Tokenizer(s string) []Token {
 	return tokenizer(TokenTypes, s)
 
 }
+
+func Ht(ts []Token) (Token, []Token) {
+	if len(ts) == 0 {
+		panic("Empty input tokens!")
+
+	}
+
+	return ts[0], ts[1:]
+
+}

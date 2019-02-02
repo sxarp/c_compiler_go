@@ -2,6 +2,8 @@ package tok
 
 import (
 	"testing"
+
+	"github.com/sxarp/c_compiler_go/src/h"
 )
 
 func expectToken(t *testing.T, tt TokenType, inputStr, expectedVal, expectedStr string) {
@@ -73,4 +75,23 @@ func TestTokenizer(t *testing.T) {
 		[]string{"+", "23", "-", "11", "EOF"})
 
 	expectTokens(t, Tokenizer, "+23-11", []string{"+", "23", "-", "11", "EOF"})
+}
+
+func TestHt(t *testing.T) {
+	tokens := Tokenizer("+-")
+
+	head, tail := Ht(tokens)
+	h.Expects(t, "+", head.val())
+
+	head, tail = Ht(tail)
+	h.Expects(t, "-", head.val())
+
+	head, tail = Ht(tail)
+	h.Expects(t, "EOF", head.val())
+
+	if len(tail) != 0 {
+		t.Errorf("Expected empty slice, got %v.", t)
+
+	}
+
 }
