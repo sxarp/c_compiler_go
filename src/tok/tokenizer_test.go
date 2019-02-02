@@ -1,6 +1,7 @@
 package tok
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
@@ -58,20 +59,20 @@ func expectTokens(t *testing.T, tker func(string) []Token, s string, expectedTok
 }
 
 func TestTokenizer(t *testing.T) {
-	GenTokenizer := func(tt []TokenType) func(string) []Token {
+	GenTokenizer := func(tt []*TokenType) func(string) []Token {
 		return func(s string) []Token {
 			return tokenizer(tt, s)
 		}
 	}
 
-	expectTokens(t, GenTokenizer([]TokenType{TPlus}), "", []string{"EOF"})
-	expectTokens(t, GenTokenizer([]TokenType{TPlus}), "+",
+	expectTokens(t, GenTokenizer([]*TokenType{&TPlus}), "", []string{"EOF"})
+	expectTokens(t, GenTokenizer([]*TokenType{&TPlus}), "+",
 		[]string{"+", "EOF"})
-	expectTokens(t, GenTokenizer([]TokenType{TPlus}), "++",
+	expectTokens(t, GenTokenizer([]*TokenType{&TPlus}), "++",
 		[]string{"+", "+", "EOF"})
-	expectTokens(t, GenTokenizer([]TokenType{TPlus, TMinus}), "+-",
+	expectTokens(t, GenTokenizer([]*TokenType{&TPlus, &TMinus}), "+-",
 		[]string{"+", "-", "EOF"})
-	expectTokens(t, GenTokenizer([]TokenType{TPlus, TMinus, TInt}), "+23-11",
+	expectTokens(t, GenTokenizer([]*TokenType{&TPlus, &TMinus, &TInt}), "+23-11",
 		[]string{"+", "23", "-", "11", "EOF"})
 
 	expectTokens(t, Tokenizer, "+23-11", []string{"+", "23", "-", "11", "EOF"})
@@ -93,5 +94,17 @@ func TestHt(t *testing.T) {
 		t.Errorf("Expected empty slice, got %v.", t)
 
 	}
+
+}
+
+func TestIs(t *testing.T) {
+	tokens := Tokenizer("+-1")
+	fmt.Printf("plus %p", &TPlus)
+
+	h.Expectt(t, true, tokens[0].Is(&TPlus))
+	h.Expectt(t, false, tokens[0].Is(&TMinus))
+	h.Expectt(t, true, tokens[1].Is(&TMinus))
+	h.Expectt(t, true, tokens[2].Is(&TInt))
+	h.Expectt(t, true, tokens[3].Is(&TEOF))
 
 }

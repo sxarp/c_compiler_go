@@ -21,6 +21,11 @@ func (t *Token) val() string {
 
 }
 
+func (t *Token) Is(tt *TokenType) bool {
+	return t.tt == tt
+
+}
+
 var TFail TokenType = TokenType{literal: "FAIL"}
 var Fail Token = Token{tt: &TFail, valp: &(TFail.literal)}
 
@@ -48,7 +53,7 @@ func (tt *TokenType) match(s string) (Token, string) {
 var TEOF TokenType = TokenType{literal: "EOF"}
 var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
-func tokenizer(tokenTypes []TokenType, s string) []Token {
+func tokenizer(tokenTypes []*TokenType, s string) []Token {
 	tokens := make([]Token, 0)
 
 	for s != "" {
@@ -81,7 +86,7 @@ var TPlus TokenType = TokenType{literal: "+"}
 var TMinus TokenType = TokenType{literal: "-"}
 var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+")}
 
-var TokenTypes = []TokenType{TPlus, TMinus, TInt}
+var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt}
 
 func Tokenizer(s string) []Token {
 	return tokenizer(TokenTypes, s)
