@@ -3,6 +3,7 @@ package tok
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 )
 
 type TokenType struct {
@@ -18,6 +19,16 @@ type Token struct {
 
 func (t *Token) val() string {
 	return *(t.valp)
+
+}
+
+func (t *Token) Vali() int {
+	if t.tt.vali == nil {
+		panic("Called Vali when vali is nil!")
+
+	}
+
+	return t.tt.vali(*(t.valp))
 
 }
 
@@ -53,7 +64,7 @@ func (tt *TokenType) match(s string) (Token, string) {
 var TEOF TokenType = TokenType{literal: "EOF"}
 var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
-func tokenizer(tokenTypes []*TokenType, s string) []Token {
+func tokenize(tokenTypes []*TokenType, s string) []Token {
 	tokens := make([]Token, 0)
 
 	for s != "" {
@@ -84,12 +95,20 @@ func tokenizer(tokenTypes []*TokenType, s string) []Token {
 
 var TPlus TokenType = TokenType{literal: "+"}
 var TMinus TokenType = TokenType{literal: "-"}
-var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+")}
+var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
+	vali: func(s string) int {
+		if i, err := strconv.Atoi(s); err != nil {
+			panic(fmt.Sprintf("Failed to convert %s to int!", s))
+		} else {
+			return i
+		}
+	},
+}
 
 var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt}
 
-func Tokenizer(s string) []Token {
-	return tokenizer(TokenTypes, s)
+func Tokenize(s string) []Token {
+	return tokenize(TokenTypes, s)
 
 }
 
