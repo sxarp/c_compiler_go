@@ -14,6 +14,13 @@ func expects(t *testing.T, expected, expect string) {
 
 }
 
+func expectt(t *testing.T, expected, expect bool) {
+	if expected != expect {
+		t.Errorf("Expected %v, got %v", expected, expect)
+	}
+
+}
+
 func execCode(t *testing.T, code string) string {
 
 	b := []byte(code)
@@ -59,5 +66,29 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "42", "42")
 	compare(t, "41", "41")
 	compare(t, "1", "1")
+
+}
+
+func ExpectToken(t *testing.T, tt TokenType, inputStr, expectedVal, expectedStr string) {
+	tok, outputStr := tt.match(inputStr)
+	outputVal := tok.val()
+
+	if outputVal != expectedVal || outputStr != expectedStr {
+		t.Errorf("Expected %s, %s for input %s, got %s, %s.", expectedVal, expectedStr, inputStr, outputVal, outputStr)
+
+	}
+
+}
+
+func TestTokenize(t *testing.T) {
+	ExpectToken(t, TPlus, "+", "+", "")
+	ExpectToken(t, TPlus, "+1234", "+", "1234")
+	ExpectToken(t, TPlus, "1+1234", "FAIL", "1+1234")
+	ExpectToken(t, TPlus, "", "FAIL", "")
+
+	ExpectToken(t, TMinus, "-", "-", "")
+	ExpectToken(t, TMinus, "-123", "-", "123")
+	ExpectToken(t, TMinus, "1-1234", "FAIL", "1-1234")
+	ExpectToken(t, TMinus, "", "FAIL", "")
 
 }

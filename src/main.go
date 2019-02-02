@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
@@ -12,6 +13,48 @@ func main() {
 	asm := compile(r)
 	fmt.Println(asm)
 }
+
+type TokenType struct {
+	regex   regexp.Regexp
+	literal string
+	vali    func(string) int
+}
+
+type Token struct {
+	tt   *TokenType
+	valp *string
+}
+
+func (t *Token) val() string {
+	return *(t.valp)
+
+}
+
+var TFail TokenType = TokenType{
+	literal: "FAIL",
+}
+
+var Fail Token = Token{
+	tt:   &TFail,
+	valp: &(TFail.literal),
+}
+
+func (tt *TokenType) match(s string) (Token, string) {
+	if tt.literal != "" {
+		tll := len(tt.literal)
+		if len(s) >= tll && s[:tll] == tt.literal {
+
+			return Token{tt: tt, valp: &tt.literal}, s[tll:]
+
+		}
+	}
+
+	return Fail, s
+}
+
+var TPlus TokenType = TokenType{literal: "+"}
+
+var TMinus TokenType = TokenType{literal: "-"}
 
 func compile(tcode string) string {
 
