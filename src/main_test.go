@@ -5,21 +5,9 @@ import (
 	"os/exec"
 	"regexp"
 	"testing"
+
+	"github.com/sxarp/c_compiler_go/src/h"
 )
-
-func expects(t *testing.T, expected, expect string) {
-	if expected != expect {
-		t.Errorf("Expected [%s], got [%s]", expected, expect)
-	}
-
-}
-
-func expectt(t *testing.T, expected, expect bool) {
-	if expected != expect {
-		t.Errorf("Expected [%v], got [%v].", expected, expect)
-	}
-
-}
 
 func execCode(t *testing.T, code string) string {
 
@@ -43,7 +31,7 @@ func execCode(t *testing.T, code string) string {
 
 func compare(t *testing.T, expected, code string) {
 
-	expects(t, expected, execCode(t, compile(code)))
+	h.Expects(t, expected, execCode(t, compile(code)))
 
 }
 
@@ -59,7 +47,7 @@ main:
         ret
 `
 
-	expects(t, expected, compile(r))
+	h.Expects(t, expected, compile(r))
 }
 
 func TestByCamperation(t *testing.T) {
@@ -71,9 +59,9 @@ func TestByCamperation(t *testing.T) {
 }
 
 func TestPreprocess(t *testing.T) {
-	expects(t, preprocess(""), "")
-	expects(t, preprocess("3"), "3")
-	expects(t, preprocess("3 "), "3")
-	expects(t, preprocess(" 12 3"), "123")
+	h.Expects(t, preprocess(""), "")
+	h.Expects(t, preprocess("3"), "3")
+	h.Expects(t, preprocess("3 "), "3")
+	h.Expects(t, preprocess(" 12 3"), "123")
 
 }
