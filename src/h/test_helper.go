@@ -17,3 +17,9 @@ func Expectt(t *testing.T, expected, expect bool) {
 	}
 
 }
+func Expecti(t *testing.T, expected, expect int) {
+	if expected != expect {
+		t.Errorf("Expected %d, got %d.", expected, expect)
+	}
+
+}
