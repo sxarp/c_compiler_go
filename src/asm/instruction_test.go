@@ -1,16 +1,15 @@
 package asm
 
-import "testing"
+import (
+	"testing"
 
-func expects(t *testing.T, expected, expect string) {
-	if expected != expect {
-		t.Errorf("Expected %s, got %s", expected, expect)
-	}
-
-}
+	"github.com/sxarp/c_compiler_go/src/h"
+)
 
 func TestIns(t *testing.T) {
-	expects(t, "        ret", I().Ret().str())
-	expects(t, "        mov rax, 42", I().Mov().Rax().Val(42).str())
-	expects(t, "        mov rax, rax", I().Mov().Rax().Rax().str())
+	h.Expects(t, "        ret", I().Ret().str())
+	h.Expects(t, "        mov rax, 42", I().Mov().Rax().Val(42).str())
+	h.Expects(t, "        mov rax, rax", I().Mov().Rax().Rax().str())
+	h.Expects(t, "        add rax, 42", I().Add().Rax().Val(42).str())
+	h.Expects(t, "        sub rax, 42", I().Sub().Rax().Val(42).str())
 }

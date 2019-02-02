@@ -37,6 +37,14 @@ func OMov() Ope {
 	return Ope{i: "mov"}
 }
 
+func OAdd() Ope {
+	return Ope{i: "add"}
+}
+
+func OSub() Ope {
+	return Ope{i: "sub"}
+}
+
 func ORet() Ope {
 	return Ope{i: "ret"}
 }
@@ -106,8 +114,19 @@ func (i Ini) Ret() Fin {
 
 }
 
+// Initial Instractions
 func (i Ini) Mov() Oped {
 	i.i.ope = OMov()
+	return Oped{i: i.i}
+}
+
+func (i Ini) Add() Oped {
+	i.i.ope = OAdd()
+	return Oped{i: i.i}
+}
+
+func (i Ini) Sub() Oped {
+	i.i.ope = OSub()
 	return Oped{i: i.i}
 }
 

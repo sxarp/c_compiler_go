@@ -5,14 +5,9 @@ import (
 	"os/exec"
 	"regexp"
 	"testing"
+
+	"github.com/sxarp/c_compiler_go/src/h"
 )
-
-func expects(t *testing.T, expected, expect string) {
-	if expected != expect {
-		t.Errorf("Expected %s, got %s", expected, expect)
-	}
-
-}
 
 func execCode(t *testing.T, code string) string {
 
@@ -28,6 +23,12 @@ func execCode(t *testing.T, code string) string {
 
 	err := exec.Command("../tmp/tmp").Run()
 
+	// Run returns nil when exit code is 0.
+	if err == nil {
+		return "0"
+
+	}
+
 	re := regexp.MustCompile("[0-9]+")
 	res := re.FindString(err.Error())
 
@@ -36,7 +37,7 @@ func execCode(t *testing.T, code string) string {
 
 func compare(t *testing.T, expected, code string) {
 
-	expects(t, expected, execCode(t, compile(code)))
+	h.Expects(t, expected, execCode(t, compile(code)))
 
 }
 
@@ -52,12 +53,29 @@ main:
         ret
 `
 
-	expects(t, expected, compile(r))
+	h.Expects(t, expected, compile(r))
 }
 
 func TestByCamperation(t *testing.T) {
 	compare(t, "42", "42")
 	compare(t, "41", "41")
 	compare(t, "1", "1")
+	compare(t, "41", " 41 ")
+	compare(t, "2", "1 + 1")
+	compare(t, "0", "1 - 1")
+	compare(t, "2", "1 - 5 + 6")
+	compare(t, "3", "1 - 2 + 3 -4 + 5")
+
+	// Only 8bits are available for the parent processes, then exit codes are in 0 ~ 255.
+	// https://unix.stackexchange.com/questions/418784/what-is-the-min-and-max-values-of-exit-codes-in-linux
+	compare(t, "249", "1 - 2 + 3 -4 + 5 - 10")
+
+}
+
+func TestPreprocess(t *testing.T) {
+	h.Expects(t, preprocess(""), "")
+	h.Expects(t, preprocess("3"), "3")
+	h.Expects(t, preprocess("3 "), "3")
+	h.Expects(t, preprocess(" 12 3"), "123")
 
 }
