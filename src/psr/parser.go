@@ -57,13 +57,6 @@ func (p Parser) decorate(decorator func(AST) AST) Parser {
 
 }
 
-var Plus *Parser = tokenTypeToPsr(&tok.TPlus)
-var Minus *Parser = tokenTypeToPsr(&tok.TMinus)
-var Int *Parser = tokenTypeToPsr(&tok.TInt)
-var LPar *Parser = tokenTypeToPsr(&tok.TLPar)
-var RPar *Parser = tokenTypeToPsr(&tok.TRPar)
-var EOF *Parser = tokenTypeToPsr(&tok.TEOF)
-
 func AndId() Parser {
 	return Parser{
 		Call: func(t []tok.Token) (AST, []tok.Token) {

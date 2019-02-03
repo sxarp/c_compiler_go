@@ -106,8 +106,10 @@ var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
 }
 var TLPar TokenType = TokenType{literal: "("}
 var TRPar TokenType = TokenType{literal: ")"}
+var TMul TokenType = TokenType{literal: "*"}
+var TDiv TokenType = TokenType{literal: "/"}
 
-var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt, &TLPar, &TRPar}
+var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv}
 
 func Tokenize(s string) []Token {
 	return tokenize(TokenTypes, s)
