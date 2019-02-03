@@ -25,7 +25,7 @@ func TestBaseParser(t *testing.T) {
 	var ast AST
 
 	for _, c := range []struct {
-		p        Parser
+		p        *Parser
 		expected bool
 	}{
 		{Int, true}, {Int, false}, {Plus, true}, {LPar, true}, {Int, true}, {Minus, true},
@@ -43,7 +43,7 @@ func TestAnd(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
 	var ast AST
 
-	p := AndId.And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
+	p := AndId().And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
 	ast, tokens = p.Call(tokens)
 	checkAst(t, true, ast)
 
@@ -72,8 +72,10 @@ func TestOr(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
 	var ast AST
 
-	p := AndId.And(Int, true).
-		And(OrId.Or(Plus).Or(Minus), false).
+	porm := OrId().Or(Plus).Or(Minus)
+
+	p := AndId().And(Int, true).
+		And(&porm, false).
 		And(Int, true).And(EOF, false)
 
 	ast, tokens = p.Call(tokens)
@@ -95,11 +97,29 @@ func TestOr(t *testing.T) {
 	}
 
 	tokens = tok.Tokenize("1-3")
-	p = AndId.And(Int, true).
-		And(OrId.Or(Plus), false).
+	plus := OrId().Or(Plus)
+	p = AndId().And(Int, true).
+		And(&plus, false).
 		And(Int, true).And(EOF, false)
 
 	ast, tokens = p.Call(tokens)
+	checkAst(t, false, ast)
+
+}
+
+func TestRecc(t *testing.T) {
+	tokens := tok.Tokenize("(((((+)))))")
+
+	parser := OrId()
+	par := AndId().And(LPar, true).And(&parser, true).And(RPar, true)
+	parser = parser.Or(Plus).Or(&par)
+	final := AndId().And(&parser, false).And(EOF, false)
+
+	ast, tokens := final.Call(tokens)
+	checkAst(t, true, ast)
+
+	tokens = tok.Tokenize("(((((+))))")
+	ast, tokens = final.Call(tokens)
 	checkAst(t, false, ast)
 
 }

@@ -27,8 +27,8 @@ type Parser struct {
 	Call func([]tok.Token) (AST, []tok.Token)
 }
 
-func tokenTypeToPsr(tt *tok.TokenType) Parser {
-	return Parser{Call: func(t []tok.Token) (AST, []tok.Token) {
+func tokenTypeToPsr(tt *tok.TokenType) *Parser {
+	return &Parser{Call: func(t []tok.Token) (AST, []tok.Token) {
 		if len(t) == 0 {
 			return Fail, t
 		}
@@ -44,30 +44,43 @@ func tokenTypeToPsr(tt *tok.TokenType) Parser {
 	}
 }
 
-func (p Parser) decorate(f func(AST) AST) Parser {
-	return p
+func (p Parser) decorate(decorator func(AST) AST) Parser {
+	call := func(t []tok.Token) (AST, []tok.Token) {
+		ast, token := p.Call(t)
+
+		ast = decorator(ast)
+
+		return ast, token
+	}
+
+	return Parser{Call: call}
 
 }
 
-var Plus Parser = tokenTypeToPsr(&tok.TPlus)
-var Minus Parser = tokenTypeToPsr(&tok.TMinus)
-var Int Parser = tokenTypeToPsr(&tok.TInt)
-var LPar Parser = tokenTypeToPsr(&tok.TLPar)
-var RPar Parser = tokenTypeToPsr(&tok.TRPar)
-var EOF Parser = tokenTypeToPsr(&tok.TEOF)
-var AndId Parser = Parser{
-	Call: func(t []tok.Token) (AST, []tok.Token) {
-		return AST{}, t
-	},
+var Plus *Parser = tokenTypeToPsr(&tok.TPlus)
+var Minus *Parser = tokenTypeToPsr(&tok.TMinus)
+var Int *Parser = tokenTypeToPsr(&tok.TInt)
+var LPar *Parser = tokenTypeToPsr(&tok.TLPar)
+var RPar *Parser = tokenTypeToPsr(&tok.TRPar)
+var EOF *Parser = tokenTypeToPsr(&tok.TEOF)
+
+func AndId() Parser {
+	return Parser{
+		Call: func(t []tok.Token) (AST, []tok.Token) {
+			return AST{}, t
+		},
+	}
 }
 
-var OrId Parser = Parser{
-	Call: func(t []tok.Token) (AST, []tok.Token) {
-		return Fail, t
-	},
+func OrId() Parser {
+	return Parser{
+		Call: func(t []tok.Token) (AST, []tok.Token) {
+			return Fail, t
+		},
+	}
 }
 
-func (lhsp Parser) And(rhsp Parser, addNode bool) Parser {
+func (lhsp Parser) And(rhsp *Parser, addNode bool) Parser {
 
 	call := func(t []tok.Token) (AST, []tok.Token) {
 
@@ -98,7 +111,7 @@ func (lhsp Parser) And(rhsp Parser, addNode bool) Parser {
 
 }
 
-func (lhsp Parser) Or(rhsp Parser) Parser {
+func (lhsp Parser) Or(rhsp *Parser) Parser {
 
 	call := func(t []tok.Token) (AST, []tok.Token) {
 
@@ -116,5 +129,4 @@ func (lhsp Parser) Or(rhsp Parser) Parser {
 	}
 
 	return Parser{Call: call}
-
 }
