@@ -61,6 +61,12 @@ var AndId Parser = Parser{
 	},
 }
 
+var OrId Parser = Parser{
+	Call: func(t []tok.Token) (AST, []tok.Token) {
+		return Fail, t
+	},
+}
+
 func (lhsp Parser) And(rhsp Parser, addNode bool) Parser {
 
 	call := func(t []tok.Token) (AST, []tok.Token) {
@@ -85,6 +91,27 @@ func (lhsp Parser) And(rhsp Parser, addNode bool) Parser {
 		}
 
 		return lhs, rhst
+
+	}
+
+	return Parser{Call: call}
+
+}
+
+func (lhsp Parser) Or(rhsp Parser) Parser {
+
+	call := func(t []tok.Token) (AST, []tok.Token) {
+
+		if lhs, lhst := lhsp.Call(t); !lhs.Fail() {
+			return lhs, lhst
+
+		}
+
+		if rhs, rhst := rhsp.Call(t); !rhs.Fail() {
+			return rhs, rhst
+		}
+
+		return Fail, t
 
 	}
 
