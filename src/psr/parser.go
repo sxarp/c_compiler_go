@@ -1,6 +1,8 @@
 package psr
 
 import (
+	"fmt"
+
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -21,6 +23,28 @@ var Fail = AST{atype: &TFail}
 
 func (a AST) Fail() bool {
 	return a.atype == &TFail
+}
+
+func (a AST) Show() string {
+	label := "term"
+	if a.token != nil {
+		label = a.token.Val()
+
+	}
+
+	if len(a.nodes) == 0 {
+		return label
+
+	}
+
+	rets := fmt.Sprintf("(%s", label)
+
+	for _, n := range a.nodes {
+		rets += " " + n.Show()
+
+	}
+
+	return rets + ")"
 }
 
 type Parser struct {
@@ -56,13 +80,6 @@ func (p Parser) decorate(decorator func(AST) AST) Parser {
 	return Parser{Call: call}
 
 }
-
-var Plus *Parser = tokenTypeToPsr(&tok.TPlus)
-var Minus *Parser = tokenTypeToPsr(&tok.TMinus)
-var Int *Parser = tokenTypeToPsr(&tok.TInt)
-var LPar *Parser = tokenTypeToPsr(&tok.TLPar)
-var RPar *Parser = tokenTypeToPsr(&tok.TRPar)
-var EOF *Parser = tokenTypeToPsr(&tok.TEOF)
 
 func AndId() Parser {
 	return Parser{

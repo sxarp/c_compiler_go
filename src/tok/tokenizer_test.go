@@ -1,7 +1,6 @@
 package tok
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
@@ -102,7 +101,6 @@ func TestHt(t *testing.T) {
 
 func TestIs(t *testing.T) {
 	tokens := Tokenize("+-1")
-	fmt.Printf("plus %p", &TPlus)
 
 	h.Expectt(t, true, tokens[0].Is(&TPlus))
 	h.Expectt(t, false, tokens[0].Is(&TMinus))
