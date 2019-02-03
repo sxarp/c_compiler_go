@@ -12,6 +12,10 @@ type AST struct {
 	atype *ASTType
 }
 
+func (a *AST) appendNode(an AST) {
+	a.nodes = append(a.nodes, &an)
+}
+
 var TFail ASTType = ASTType{}
 var Fail = AST{atype: &TFail}
 
@@ -25,6 +29,10 @@ type Parser struct {
 
 func tokenTypeToPsr(tt *tok.TokenType) Parser {
 	return Parser{Call: func(t []tok.Token) (AST, []tok.Token) {
+		if len(t) == 0 {
+			return Fail, t
+		}
+
 		head, tail := tok.Ht(t)
 		if head.Is(tt) {
 			return AST{token: &head}, tail
@@ -47,3 +55,39 @@ var Int Parser = tokenTypeToPsr(&tok.TInt)
 var LPar Parser = tokenTypeToPsr(&tok.TLPar)
 var RPar Parser = tokenTypeToPsr(&tok.TRPar)
 var EOF Parser = tokenTypeToPsr(&tok.TEOF)
+var AndId Parser = Parser{
+	Call: func(t []tok.Token) (AST, []tok.Token) {
+		return AST{}, t
+	},
+}
+
+func (lhsp Parser) And(rhsp Parser, addNode bool) Parser {
+
+	call := func(t []tok.Token) (AST, []tok.Token) {
+
+		lhs, lhst := lhsp.Call(t)
+
+		if lhs.Fail() {
+			return Fail, t
+
+		}
+
+		rhs, rhst := rhsp.Call(lhst)
+
+		if rhs.Fail() {
+			return Fail, t
+
+		}
+
+		if addNode {
+			lhs.appendNode(rhs)
+
+		}
+
+		return lhs, rhst
+
+	}
+
+	return Parser{Call: call}
+
+}

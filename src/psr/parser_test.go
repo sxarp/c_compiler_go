@@ -38,3 +38,32 @@ func TestBaseParser(t *testing.T) {
 	}
 
 }
+
+func TestAnd(t *testing.T) {
+	tokens := tok.Tokenize("1+3")
+	var ast AST
+
+	p := AndId.And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
+	ast, tokens = p.Call(tokens)
+	checkAst(t, true, ast)
+
+	if len(tokens) != 0 {
+		t.Errorf("Tokens must be consumed, got %v", tokens)
+
+	}
+
+	if i := ast.nodes[0].token.Vali(); i != 1 {
+		t.Errorf("Expected 1, got %d", i)
+
+	}
+
+	if i := ast.nodes[1].token.Vali(); i != 3 {
+		t.Errorf("Expected 1, got %d", i)
+
+	}
+
+	tokens = tok.Tokenize("1+1(")
+	ast, tokens = p.Call(tokens)
+	checkAst(t, false, ast)
+
+}
