@@ -17,7 +17,7 @@ type Token struct {
 	valp *string
 }
 
-func (t *Token) val() string {
+func (t *Token) Val() string {
 	return *(t.valp)
 
 }
@@ -104,8 +104,10 @@ var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
 		}
 	},
 }
+var TLPar TokenType = TokenType{literal: "("}
+var TRPar TokenType = TokenType{literal: ")"}
 
-var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt}
+var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt, &TLPar, &TRPar}
 
 func Tokenize(s string) []Token {
 	return tokenize(TokenTypes, s)

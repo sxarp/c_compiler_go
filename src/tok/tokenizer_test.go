@@ -9,7 +9,7 @@ import (
 
 func expectToken(t *testing.T, tt TokenType, inputStr, expectedVal, expectedStr string) {
 	tok, outputStr := tt.match(inputStr)
-	outputVal := tok.val()
+	outputVal := tok.Val()
 
 	if outputVal != expectedVal || outputStr != expectedStr {
 		t.Errorf("Expected %s, %s for input %s, got %s, %s.", expectedVal, expectedStr, inputStr, outputVal, outputStr)
@@ -46,7 +46,7 @@ func expectTokens(t *testing.T, tker func(string) []Token, s string, expectedTok
 	tokenVals := make([]string, 0)
 
 	for i, token := range tokens {
-		tokenVals = append(tokenVals, token.val())
+		tokenVals = append(tokenVals, token.Val())
 
 		expectedVal := "nil"
 		if len(expectedTokens) > i {
@@ -85,13 +85,13 @@ func TestHt(t *testing.T) {
 	tokens := Tokenize("+-")
 
 	head, tail := Ht(tokens)
-	h.Expects(t, "+", head.val())
+	h.Expects(t, "+", head.Val())
 
 	head, tail = Ht(tail)
-	h.Expects(t, "-", head.val())
+	h.Expects(t, "-", head.Val())
 
 	head, tail = Ht(tail)
-	h.Expects(t, "EOF", head.val())
+	h.Expects(t, "EOF", head.Val())
 
 	if len(tail) != 0 {
 		t.Errorf("Expected empty slice, got %v.", t)
