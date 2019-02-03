@@ -21,17 +21,17 @@ func GenParser() Parser {
 	add := OrId()
 	term := OrId()
 
-	termPlusMul := AndId().And(&term, true).And(Plus, false).And(&mul, true)
-	termMinusMul := AndId().And(&term, true).And(Minus, false).And(&mul, true)
+	termPlusMul := AndId().And(&term, true).And(Plus, true).And(&mul, true)
+	termMinusMul := AndId().And(&term, true).And(Minus, true).And(&mul, true)
 	add = add.Or(&termPlusMul).Or(&termMinusMul).Or(&term)
 
-	termMulMul := AndId().And(&term, true).And(Mul, false).And(&mul, true)
-	termDivMul := AndId().And(&term, true).And(Div, false).And(&mul, true)
+	termMulMul := AndId().And(&term, true).And(Mul, true).And(&mul, true)
+	termDivMul := AndId().And(&term, true).And(Div, true).And(&mul, true)
 	mul = mul.Or(&termMulMul).Or(&termDivMul).Or(&add)
 
 	parTerm := AndId().And(LPar, true).And(&mul, true).And(RPar, true)
 	term = term.Or(&parTerm).Or(num)
 
-	return AndId().And(&mul, false).And(EOF, false)
+	return AndId().And(&mul, true).And(EOF, false)
 
 }

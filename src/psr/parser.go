@@ -1,6 +1,8 @@
 package psr
 
 import (
+	"fmt"
+
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -21,6 +23,28 @@ var Fail = AST{atype: &TFail}
 
 func (a AST) Fail() bool {
 	return a.atype == &TFail
+}
+
+func (a AST) Show() string {
+	label := "term"
+	if a.token != nil {
+		label = a.token.Val()
+
+	}
+
+	if len(a.nodes) == 0 {
+		return label
+
+	}
+
+	rets := fmt.Sprintf("(%s", label)
+
+	for _, n := range a.nodes {
+		rets += " " + n.Show()
+
+	}
+
+	return rets + ")"
 }
 
 type Parser struct {

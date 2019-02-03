@@ -1,6 +1,7 @@
 package psr
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/tok"
@@ -28,6 +29,7 @@ func TestNum(t *testing.T) {
 
 		ast, _ = GenParser().Call(tokens)
 		checkAst(t, c.r, ast)
+		fmt.Println(ast.Show())
 	}
 
 }
