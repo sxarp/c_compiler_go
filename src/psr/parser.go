@@ -147,3 +147,33 @@ func (lhsp Parser) Or(rhsp *Parser) Parser {
 
 	return Parser{Call: call}
 }
+
+func (lhsp Parser) Rep(rhsp *Parser) Parser {
+
+	call := func(lest []tok.Token) (AST, []tok.Token) {
+
+		var node AST
+
+		if lhs, lhst := lhsp.Call(lest); lhs.Fail() {
+			return lhs, lest
+
+		} else {
+			node, lest = lhs, lhst
+		}
+
+		for {
+
+			if rhs, rhst := rhsp.Call(lest); rhs.Fail() {
+				return node, lest
+			} else {
+				lest = rhst
+				node.appendNode(rhs)
+
+			}
+
+		}
+
+	}
+
+	return Parser{Call: call}
+}

@@ -123,3 +123,23 @@ func TestRecc(t *testing.T) {
 	checkAst(t, false, ast)
 
 }
+
+func TestRep(t *testing.T) {
+	tokens := tok.Tokenize("1-1+2-4+5")
+	var ast AST
+
+	porm := OrId().Or(Plus).Or(Minus)
+	add := AndId().And(&porm, true).And(Int, true)
+
+	p := AndId().And(Int, true).
+		Rep(&add).And(EOF, false)
+
+	ast, tokens = p.Call(tokens)
+	checkAst(t, true, ast)
+
+	if len(tokens) != 0 {
+		t.Errorf("Tokens must be consumed, got %v", tokens)
+
+	}
+
+}
