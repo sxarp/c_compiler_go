@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/tok"
@@ -74,4 +75,16 @@ func (a AST) Eval(code *asm.Code) {
 
 	}
 
+}
+
+func CheckAst(t *testing.T, success bool, a AST) {
+	if success && a.Fail() {
+		t.Errorf("Expected to succeed in parsing, got failed.")
+
+	}
+
+	if !success && !a.Fail() {
+		t.Errorf("Expected to fail at parsing, got %v.", a.Token.Val())
+
+	}
 }

@@ -10,7 +10,7 @@ import (
 
 func TestNum(t *testing.T) {
 	var tokens []tok.Token
-	var ast ast.AST
+	var a ast.AST
 
 	for _, c := range []struct {
 		s string
@@ -30,16 +30,16 @@ func TestNum(t *testing.T) {
 	} {
 		tokens = tok.Tokenize(c.s)
 
-		ast, _ = GenParser().Call(tokens)
-		checkAst(t, c.r, ast)
-		fmt.Println(ast.Show())
+		a, _ = GenParser().Call(tokens)
+		ast.CheckAst(t, c.r, a)
+		fmt.Println(a.Show())
 	}
 
 }
 
 func TestNum2(t *testing.T) {
 	var tokens []tok.Token
-	var ast ast.AST
+	var a ast.AST
 
 	for _, c := range []struct {
 		s string
@@ -60,9 +60,9 @@ func TestNum2(t *testing.T) {
 	} {
 		tokens = tok.Tokenize(c.s)
 
-		ast, _ = GenParser2().Call(tokens)
-		checkAst(t, c.r, ast)
-		fmt.Println(ast.Show())
+		a, _ = GenParser2().Call(tokens)
+		ast.CheckAst(t, c.r, a)
+		fmt.Println(a.Show())
 	}
 
 }
