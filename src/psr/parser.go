@@ -177,3 +177,19 @@ func (lhsp Parser) Rep(rhsp *Parser) Parser {
 
 	return Parser{Call: call}
 }
+
+func (lhsp Parser) Trans(f func(AST) AST) Parser {
+
+	call := func(t []tok.Token) (AST, []tok.Token) {
+
+		if lhs, lhst := lhsp.Call(t); lhs.Fail() {
+			return lhs, t
+
+		} else {
+			return f(lhs), lhst
+		}
+
+	}
+
+	return Parser{Call: call}
+}
