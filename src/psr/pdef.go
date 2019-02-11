@@ -29,7 +29,7 @@ func GenParser() Parser {
 	termDivMul := AndId().And(&term, true).And(Div, true).And(&mul, true)
 	mul = mul.Or(&termMulMul).Or(&termDivMul).Or(&add)
 
-	parTerm := AndId().And(LPar, true).And(&mul, true).And(RPar, true)
+	parTerm := AndId().And(LPar, false).And(&mul, true).And(RPar, false).Trans(func(a AST) AST { return *(a.nodes[0]) })
 	term = term.Or(&parTerm).Or(num)
 
 	return AndId().And(&mul, true).And(EOF, false)
