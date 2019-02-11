@@ -29,9 +29,41 @@ func GenParser() Parser {
 	termDivMul := AndId().And(&term, true).And(Div, true).And(&mul, true)
 	mul = mul.Or(&termMulMul).Or(&termDivMul).Or(&add)
 
-	parTerm := AndId().And(LPar, false).And(&mul, true).And(RPar, false).Trans(func(a AST) AST { return *(a.nodes[0]) })
+	pop := func(a AST) AST { return *(a.nodes[0]) }
+	parTerm := AndId().And(LPar, false).And(&mul, true).And(RPar, false).Trans(pop)
 	term = term.Or(&parTerm).Or(num)
 
 	return AndId().And(&mul, true).And(EOF, false)
+
+}
+
+func GenParser2() Parser {
+	numv := OrId().Or(Int)
+	num := &numv
+
+	term := OrId()
+	muls := AndId()
+
+	popSingle := func(a AST) AST {
+		if len(a.nodes) == 1 {
+			return *(a.nodes[0])
+		} else {
+			return a
+
+		}
+	}
+
+	porm := OrId().Or(Plus).Or(Minus)
+	adder := AndId().And(&porm, true).And(&muls, true)
+	adds := AndId().And(&muls, true).Rep(&adder).Trans(popSingle)
+
+	mord := OrId().Or(Mul).Or(Div)
+	muler := AndId().And(&mord, true).And(&term, true)
+	muls = muls.And(&term, true).Rep(&muler).Trans(popSingle)
+
+	parTerm := AndId().And(LPar, false).And(&adds, true).And(RPar, false).Trans(popSingle)
+	term = term.Or(&parTerm).Or(num)
+
+	return AndId().And(&adds, true).And(EOF, false)
 
 }
