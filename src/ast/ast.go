@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 
+	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -12,6 +13,7 @@ type AST struct {
 	nodes []*AST
 	Token *tok.Token
 	atype *ASTType
+	eval  func([]*AST, *asm.Code)
 }
 
 func (a *AST) Node(i int) AST {
@@ -58,4 +60,18 @@ func PopSingle(a AST) AST {
 		return a
 
 	}
+}
+
+func (a AST) Eval(code *asm.Code) {
+
+	if a.eval == nil {
+		for _, node := range a.nodes {
+			node.Eval(code)
+		}
+
+	} else {
+		a.eval(a.nodes, code)
+
+	}
+
 }

@@ -4,33 +4,46 @@ import (
 	"github.com/sxarp/c_compiler_go/src/str"
 )
 
-type code struct {
-	code *str.Builder
+type Code struct {
+	code  *str.Builder
+	insts []Fin
 }
 
-func New() code {
+func New() Code {
 	var sb str.Builder = str.Builder{}
 	sb.Nr()
 	sb.Write(".intel_syntax noprefix")
 	sb.Write(".global main")
 	sb.Nr()
 
-	return code{code: &sb}
+	return Code{code: &sb}
 }
 
-func (c *code) Main() *code {
+func (c *Code) Main() *Code {
 	c.code.Write("main:")
 
 	return c
 }
 
-func (c *code) Ins(i Fin) *code {
-	c.code.Write(i.str())
+func (c *Code) Ins(i Fin) *Code {
+	c.insts = append(c.insts, i)
 
 	return c
 }
 
-func (c *code) Str() string {
+func (c *Code) ForEachInst(f func(Fin)) {
+
+	for _, i := range c.insts {
+		f(i)
+	}
+
+}
+
+func (c *Code) Str() string {
+	c.ForEachInst(func(i Fin) {
+		c.code.Write(i.str())
+	})
+
 	return c.code.Str()
 
 }
