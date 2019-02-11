@@ -3,17 +3,18 @@ package psr
 import (
 	"testing"
 
+	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
-func checkAst(t *testing.T, success bool, a AST) {
+func checkAst(t *testing.T, success bool, a ast.AST) {
 	if success && a.Fail() {
 		t.Errorf("Expected to succeed in parsing, got failed.")
 
 	}
 
 	if !success && !a.Fail() {
-		t.Errorf("Expected to fail at parsing, got %v.", a.token.Val())
+		t.Errorf("Expected to fail at parsing, got %v.", a.Token.Val())
 
 	}
 }
@@ -22,7 +23,7 @@ func TestBaseParser(t *testing.T) {
 
 	tokens := tok.Tokenize("1+(11-5)")
 
-	var ast AST
+	var ast ast.AST
 
 	for _, c := range []struct {
 		p        *Parser
@@ -41,36 +42,36 @@ func TestBaseParser(t *testing.T) {
 
 func TestAnd(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
-	var ast AST
+	var a ast.AST
 
 	p := AndId().And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
-	ast, tokens = p.Call(tokens)
-	checkAst(t, true, ast)
+	a, tokens = p.Call(tokens)
+	checkAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)
 
 	}
 
-	if i := ast.nodes[0].token.Vali(); i != 1 {
+	if i := a.Node(0).Token.Vali(); i != 1 {
 		t.Errorf("Expected 1, got %d", i)
 
 	}
 
-	if i := ast.nodes[1].token.Vali(); i != 3 {
-		t.Errorf("Expected 1, got %d", i)
+	if i := a.Node(1).Token.Vali(); i != 3 {
+		t.Errorf("Expected 3, got %d", i)
 
 	}
 
 	tokens = tok.Tokenize("1+1(")
-	ast, tokens = p.Call(tokens)
-	checkAst(t, false, ast)
+	a, tokens = p.Call(tokens)
+	checkAst(t, false, a)
 
 }
 
 func TestOr(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
-	var ast AST
+	var a ast.AST
 
 	porm := OrId().Or(Plus).Or(Minus)
 
@@ -78,20 +79,20 @@ func TestOr(t *testing.T) {
 		And(&porm, false).
 		And(Int, true).And(EOF, false)
 
-	ast, tokens = p.Call(tokens)
-	checkAst(t, true, ast)
+	a, tokens = p.Call(tokens)
+	checkAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)
 
 	}
 
-	if i := ast.nodes[0].token.Vali(); i != 1 {
+	if i := a.Node(0).Token.Vali(); i != 1 {
 		t.Errorf("Expected 1, got %d", i)
 
 	}
 
-	if i := ast.nodes[1].token.Vali(); i != 3 {
+	if i := a.Node(1).Token.Vali(); i != 3 {
 		t.Errorf("Expected 1, got %d", i)
 
 	}
@@ -102,8 +103,8 @@ func TestOr(t *testing.T) {
 		And(&plus, false).
 		And(Int, true).And(EOF, false)
 
-	ast, tokens = p.Call(tokens)
-	checkAst(t, false, ast)
+	a, tokens = p.Call(tokens)
+	checkAst(t, false, a)
 
 }
 
@@ -126,7 +127,7 @@ func TestRecc(t *testing.T) {
 
 func TestRep(t *testing.T) {
 	tokens := tok.Tokenize("1-1+2-4+5")
-	var ast AST
+	var a ast.AST
 
 	porm := OrId().Or(Plus).Or(Minus)
 	add := AndId().And(&porm, true).And(Int, true)
@@ -134,8 +135,8 @@ func TestRep(t *testing.T) {
 	p := AndId().And(Int, true).
 		Rep(&add).And(EOF, false)
 
-	ast, tokens = p.Call(tokens)
-	checkAst(t, true, ast)
+	a, tokens = p.Call(tokens)
+	checkAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)

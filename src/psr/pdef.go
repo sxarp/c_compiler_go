@@ -1,6 +1,7 @@
 package psr
 
 import (
+	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -29,7 +30,7 @@ func GenParser() Parser {
 	termDivMul := AndId().And(&term, true).And(Div, true).And(&mul, true)
 	mul = mul.Or(&termMulMul).Or(&termDivMul).Or(&add)
 
-	pop := func(a AST) AST { return *(a.nodes[0]) }
+	pop := func(a ast.AST) ast.AST { return a.Node(0) }
 	parTerm := AndId().And(LPar, false).And(&mul, true).And(RPar, false).Trans(pop)
 	term = term.Or(&parTerm).Or(num)
 
@@ -44,24 +45,15 @@ func GenParser2() Parser {
 	term := OrId()
 	muls := AndId()
 
-	popSingle := func(a AST) AST {
-		if len(a.nodes) == 1 {
-			return *(a.nodes[0])
-		} else {
-			return a
-
-		}
-	}
-
 	porm := OrId().Or(Plus).Or(Minus)
 	adder := AndId().And(&porm, true).And(&muls, true)
-	adds := AndId().And(&muls, true).Rep(&adder).Trans(popSingle)
+	adds := AndId().And(&muls, true).Rep(&adder).Trans(ast.PopSingle)
 
 	mord := OrId().Or(Mul).Or(Div)
 	muler := AndId().And(&mord, true).And(&term, true)
-	muls = muls.And(&term, true).Rep(&muler).Trans(popSingle)
+	muls = muls.And(&term, true).Rep(&muler).Trans(ast.PopSingle)
 
-	parTerm := AndId().And(LPar, false).And(&adds, true).And(RPar, false).Trans(popSingle)
+	parTerm := AndId().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(num)
 
 	return AndId().And(&adds, true).And(EOF, false)

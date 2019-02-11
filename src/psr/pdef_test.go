@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
 func TestNum(t *testing.T) {
 	var tokens []tok.Token
-	var ast AST
+	var ast ast.AST
 
 	for _, c := range []struct {
 		s string
@@ -38,7 +39,7 @@ func TestNum(t *testing.T) {
 
 func TestNum2(t *testing.T) {
 	var tokens []tok.Token
-	var ast AST
+	var ast ast.AST
 
 	for _, c := range []struct {
 		s string
