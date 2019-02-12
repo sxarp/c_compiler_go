@@ -7,6 +7,7 @@ import (
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/h"
+	"github.com/sxarp/c_compiler_go/src/psr"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -40,32 +41,61 @@ func TestArithmetics(t *testing.T) {
 
 }
 
+type psrTestCase struct {
+	rcode string
+	ins   []asm.Fin
+	tf    bool
+}
+
+func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
+	lhs := asm.New()
+	for _, i := range c.ins {
+		lhs.Ins(i)
+	}
+
+	rhs := asm.New()
+	a, _ := p.Call(tok.Tokenize(c.rcode))
+	a.Eval(&rhs)
+	h.Expectt(t, c.tf, lhs.Eq(&rhs))
+
+}
+
 func TestNunInt(t *testing.T) {
 
-	for _, c := range []struct {
-		ins   []asm.Fin
-		rcode string
-		r     bool
-	}{
+	for _, c := range []psrTestCase{
 		{
-			[]asm.Fin{asm.I().Push().Val(42)},
+
 			"42",
+			[]asm.Fin{asm.I().Push().Val(42)},
 			true,
 		},
 		{
-			[]asm.Fin{asm.I().Push().Val(42)},
+
 			"43",
+			[]asm.Fin{asm.I().Push().Val(42)},
 			false,
 		},
 	} {
-		lhs := asm.New()
-		for _, i := range c.ins {
-			lhs.Ins(i)
-		}
+		compCode(t, numInt, c)
+	}
+}
 
-		rhs := asm.New()
-		a, _ := numInt.Call(tok.Tokenize(c.rcode))
-		a.Eval(&rhs)
-		h.Expectt(t, c.r, lhs.Eq(&rhs))
+func TestAdder(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"+2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Add().Rax().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, adder(&numInt), c)
 	}
 }
