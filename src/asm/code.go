@@ -47,3 +47,18 @@ func (c *Code) Str() string {
 	return c.code.Str()
 
 }
+
+func (lhs *Code) Eq(rhs *Code) bool {
+	if len(lhs.insts) != len(rhs.insts) {
+		return false
+	}
+
+	eq := true
+	for i, li := range lhs.insts {
+		eq = eq && li.Eq(&(rhs.insts[i]))
+
+	}
+
+	return eq
+
+}

@@ -1,12 +1,19 @@
 package gen
 
 import (
+	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/psr"
 )
 
 var orId = psr.OrId
 var andId = psr.AndId
+
+var numInt = andId().And(psr.Int, true).
+	SetEval(func(nodes []*ast.AST, code *asm.Code) {
+		i := nodes[0].Token.Vali()
+		code.Ins(asm.I().Push().Val(i))
+	})
 
 func GenParser() psr.Parser {
 

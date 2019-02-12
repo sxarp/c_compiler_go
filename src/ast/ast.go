@@ -8,13 +8,15 @@ import (
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
+type Eval func([]*AST, *asm.Code)
+
 type ASTType struct{}
 
 type AST struct {
 	nodes []*AST
 	Token *tok.Token
 	atype *ASTType
-	eval  func([]*AST, *asm.Code)
+	eval  Eval
 }
 
 func (a *AST) Node(i int) AST {
@@ -74,6 +76,11 @@ func (a AST) Eval(code *asm.Code) {
 		a.eval(a.nodes, code)
 
 	}
+
+}
+
+func (a *AST) SetEval(f Eval) {
+	a.eval = f
 
 }
 
