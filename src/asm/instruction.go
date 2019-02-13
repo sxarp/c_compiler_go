@@ -28,6 +28,8 @@ func OSub() Ope  { return Ope{i: "sub"} }
 func ORet() Ope  { return Ope{i: "ret"} }
 func OPop() Ope  { return Ope{i: "pop"} }
 func OPush() Ope { return Ope{i: "push"} }
+func OMul() Ope  { return Ope{i: "mul"} }
+func ODiv() Ope  { return Ope{i: "div"} }
 
 type Ins struct {
 	ope  Ope
@@ -43,7 +45,7 @@ func (i Ins) str() string {
 	sb.Put("        ")
 	sb.Put(i.ope.str())
 
-	if i.ope == OPop() || i.ope == OPush() {
+	if i.ope == OPop() || i.ope == OPush() || i.ope == OMul() || i.ope == ODiv() {
 		sb.Put(" ")
 		if !i.srcR.nil() {
 			sb.Put(i.srcR.str())
@@ -122,6 +124,8 @@ func (i Ini) Sub() Oped { return toOped(i.i, OSub) }
 
 func (i Ini) Pop() Dested  { return opeDested(i.i, OPop) }
 func (i Ini) Push() Dested { return opeDested(i.i, OPush) }
+func (i Ini) Mul() Dested  { return opeDested(i.i, OMul) }
+func (i Ini) Div() Dested  { return opeDested(i.i, ODiv) }
 
 func (i Oped) Rax() Dested {
 	i.i.dest = Rax()
