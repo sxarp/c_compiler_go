@@ -1,45 +1,13 @@
 package gen
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
-	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/h"
 	"github.com/sxarp/c_compiler_go/src/psr"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
-
-func TestArithmetics(t *testing.T) {
-	var tokens []tok.Token
-	var a ast.AST
-
-	for _, c := range []struct {
-		s string
-		r bool
-	}{
-		{"1", true},
-		{"1+2", true},
-		{"1*2", true},
-		{"1+2+3", true},
-		{"1*2*3", true},
-		{"1+2*3", true},
-		{"1*2+3", true},
-		{"1*(2+3)*4+5", true},
-		{"1*2++3*4*5", false},
-		{"1*(2+3)*4+5", true},
-		{"1*(2+3)/4+5", true},
-		{"1*2+3)", false},
-	} {
-		tokens = tok.Tokenize(c.s)
-
-		a, _ = GenParser().Call(tokens)
-		ast.CheckAst(t, c.r, a)
-		fmt.Println(a.Show())
-	}
-
-}
 
 type psrTestCase struct {
 	rcode string
@@ -120,7 +88,7 @@ func TestSubber(t *testing.T) {
 	}
 }
 
-func Testaddsubs(t *testing.T) {
+func TestAddsubs(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
@@ -131,12 +99,88 @@ func Testaddsubs(t *testing.T) {
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rdi(),
 				asm.I().Pop().Rax(),
-				asm.I().Sub().Rax().Rdi(),
+				asm.I().Add().Rax().Rdi(),
 				asm.I().Push().Rax(),
 			},
 			true,
 		},
 	} {
 		compCode(t, addsubs(&numInt), c)
+	}
+}
+
+func TestReturner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, returner(&numInt), c)
+	}
+}
+
+func TestGenerator(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+		{
+
+			"1+1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Add().Rax().Rdi(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+		{
+
+			"(1+2)",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Add().Rax().Rdi(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+		{
+
+			"(1-(2))",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Sub().Rax().Rdi(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, Generator(), c)
 	}
 }

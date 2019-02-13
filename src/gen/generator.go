@@ -56,25 +56,32 @@ func addsubs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&addsub).Trans(ast.PopSingle)
 }
 
-func GenParser() psr.Parser {
+func returner(term *psr.Parser) psr.Parser {
+	return andId().And(term, true).And(psr.EOF, false).
+		SetEval(func(nodes []*ast.AST, code *asm.Code) {
+			checkNodeCount(nodes, 1)
+			nodes[0].Eval(code)
+			code.Ins(asm.I().Pop().Rax())
+		})
+}
 
-	numv := orId().Or(psr.Int)
+func Generator() psr.Parser {
+
+	numv := orId().Or(&numInt)
 	num := &numv
 
 	term := orId()
-	muls := andId()
+	//muls := andId()
 
-	porm := orId().Or(psr.Plus).Or(psr.Minus)
-	adder := andId().And(&porm, true).And(&muls, true)
-	adds := andId().And(&muls, true).Rep(&adder).Trans(ast.PopSingle)
+	adds := addsubs(&term)
 
-	mord := orId().Or(psr.Mul).Or(psr.Div)
-	muler := andId().And(&mord, true).And(&term, true)
-	muls = muls.And(&term, true).Rep(&muler).Trans(ast.PopSingle)
+	//mord := orId().Or(psr.Mul).Or(psr.Div)
+	//muler := andId().And(&mord, true).And(&term, true)
+	//muls = muls.And(&term, true).Rep(&muler).Trans(ast.PopSingle)
 
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(num)
 
-	return andId().And(&adds, true).And(psr.EOF, false)
+	return returner(&adds)
 
 }
