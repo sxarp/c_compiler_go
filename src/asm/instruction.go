@@ -13,8 +13,10 @@ type Reg struct {
 func (r Reg) str() string { return r.r }
 func (r Reg) nil() bool   { return r.r == "" }
 
+// Registers
 func Rax() Reg { return Reg{r: "rax"} }
 func Rdi() Reg { return Reg{r: "rdi"} }
+func Rdx() Reg { return Reg{r: "rdx"} }
 
 type Ope struct {
 	i string
@@ -22,6 +24,7 @@ type Ope struct {
 
 func (i Ope) str() string { return i.i }
 
+// Operators
 func OMov() Ope  { return Ope{i: "mov"} }
 func OAdd() Ope  { return Ope{i: "add"} }
 func OSub() Ope  { return Ope{i: "sub"} }
@@ -102,7 +105,6 @@ func (i Ini) Ret() Fin {
 
 }
 
-// Initial Instractions
 func toOped(i Ins, o func() Ope) Oped {
 	i.ope = o()
 	return Oped{i: i}
@@ -118,6 +120,11 @@ func regFin(i Ins, o func() Reg) Fin {
 	return Fin{i: i}
 }
 
+func toDested(i Ins, o func() Reg) Dested {
+	i.dest = o()
+	return Dested{i: i}
+}
+
 func (i Ini) Mov() Oped { return toOped(i.i, OMov) }
 func (i Ini) Add() Oped { return toOped(i.i, OAdd) }
 func (i Ini) Sub() Oped { return toOped(i.i, OSub) }
@@ -127,10 +134,8 @@ func (i Ini) Push() Dested { return opeDested(i.i, OPush) }
 func (i Ini) Mul() Dested  { return opeDested(i.i, OMul) }
 func (i Ini) Div() Dested  { return opeDested(i.i, ODiv) }
 
-func (i Oped) Rax() Dested {
-	i.i.dest = Rax()
-	return Dested{i: i.i}
-}
+func (i Oped) Rax() Dested { return toDested(i.i, Rax) }
+func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
