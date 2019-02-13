@@ -80,22 +80,16 @@ func returner(term *psr.Parser) psr.Parser {
 }
 
 func Generator() psr.Parser {
-
-	numv := orId().Or(&numInt)
-	num := &numv
+	num := orId().Or(&numInt)
 
 	term := orId()
-	//muls := andId()
+	muls := andId()
 
-	adds := addsubs(&term)
-
-	//mord := orId().Or(psr.Mul).Or(psr.Div)
-	//muler := andId().And(&mord, true).And(&term, true)
-	//muls = muls.And(&term, true).Rep(&muler).Trans(ast.PopSingle)
+	adds := addsubs(&muls)
+	muls = muldivs(&term)
 
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
-	term = term.Or(&parTerm).Or(num)
+	term = term.Or(&parTerm).Or(&num)
 
 	return returner(&adds)
-
 }
