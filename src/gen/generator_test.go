@@ -119,3 +119,24 @@ func TestSubber(t *testing.T) {
 		compCode(t, subber(&numInt), c)
 	}
 }
+
+func Testaddsubs(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"1+1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Sub().Rax().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, addsubs(&numInt), c)
+	}
+}

@@ -50,6 +50,12 @@ func subber(term *psr.Parser) psr.Parser {
 	return binaryOperator(term, psr.Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
 }
 
+func addsubs(term *psr.Parser) psr.Parser {
+	add, sub := adder(term), subber(term)
+	addsub := orId().Or(&add).Or(&sub)
+	return andId().And(term, true).Rep(&addsub).Trans(ast.PopSingle)
+}
+
 func GenParser() psr.Parser {
 
 	numv := orId().Or(psr.Int)
