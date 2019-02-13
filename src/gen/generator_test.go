@@ -150,6 +150,27 @@ func TestDiver(t *testing.T) {
 	}
 }
 
+func TestMuldivs(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"1*2",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Mul().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, muldivs(&numInt), c)
+	}
+}
+
 func TestReturner(t *testing.T) {
 
 	for _, c := range []psrTestCase{

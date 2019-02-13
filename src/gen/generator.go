@@ -64,6 +64,12 @@ func diver(term *psr.Parser) psr.Parser {
 	return binaryOperator(term, psr.Div, []asm.Fin{asm.I().Mov().Rdx().Val(0), asm.I().Div().Rdi()})
 }
 
+func muldivs(term *psr.Parser) psr.Parser {
+	mul, div := muler(term), diver(term)
+	muldiv := orId().Or(&mul).Or(&div)
+	return andId().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
+}
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {
