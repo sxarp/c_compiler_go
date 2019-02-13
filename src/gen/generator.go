@@ -60,6 +60,10 @@ func muler(term *psr.Parser) psr.Parser {
 	return binaryOperator(term, psr.Mul, []asm.Fin{asm.I().Mul().Rdi()})
 }
 
+func diver(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Div, []asm.Fin{asm.I().Mov().Rdx().Val(0), asm.I().Div().Rdi()})
+}
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {

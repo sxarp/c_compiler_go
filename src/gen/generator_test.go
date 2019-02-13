@@ -129,6 +129,27 @@ func TestMuler(t *testing.T) {
 	}
 }
 
+func TestDiver(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"/2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdx().Val(0),
+				asm.I().Div().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, diver(&numInt), c)
+	}
+}
+
 func TestReturner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
