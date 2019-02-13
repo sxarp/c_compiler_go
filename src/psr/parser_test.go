@@ -7,23 +7,11 @@ import (
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
-func checkAst(t *testing.T, success bool, a ast.AST) {
-	if success && a.Fail() {
-		t.Errorf("Expected to succeed in parsing, got failed.")
-
-	}
-
-	if !success && !a.Fail() {
-		t.Errorf("Expected to fail at parsing, got %v.", a.Token.Val())
-
-	}
-}
-
 func TestBaseParser(t *testing.T) {
 
 	tokens := tok.Tokenize("1+(11-5)")
 
-	var ast ast.AST
+	var a ast.AST
 
 	for _, c := range []struct {
 		p        *Parser
@@ -33,8 +21,8 @@ func TestBaseParser(t *testing.T) {
 		{Int, true}, {RPar, true}, {EOF, true},
 	} {
 
-		ast, tokens = c.p.Call(tokens)
-		checkAst(t, c.expected, ast)
+		a, tokens = c.p.Call(tokens)
+		ast.CheckAst(t, c.expected, a)
 
 	}
 
@@ -46,7 +34,7 @@ func TestAnd(t *testing.T) {
 
 	p := AndId().And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
 	a, tokens = p.Call(tokens)
-	checkAst(t, true, a)
+	ast.CheckAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)
@@ -65,7 +53,7 @@ func TestAnd(t *testing.T) {
 
 	tokens = tok.Tokenize("1+1(")
 	a, tokens = p.Call(tokens)
-	checkAst(t, false, a)
+	ast.CheckAst(t, false, a)
 
 }
 
@@ -80,7 +68,7 @@ func TestOr(t *testing.T) {
 		And(Int, true).And(EOF, false)
 
 	a, tokens = p.Call(tokens)
-	checkAst(t, true, a)
+	ast.CheckAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)
@@ -104,7 +92,7 @@ func TestOr(t *testing.T) {
 		And(Int, true).And(EOF, false)
 
 	a, tokens = p.Call(tokens)
-	checkAst(t, false, a)
+	ast.CheckAst(t, false, a)
 
 }
 
@@ -116,12 +104,12 @@ func TestRecc(t *testing.T) {
 	parser = parser.Or(Plus).Or(&par)
 	final := AndId().And(&parser, false).And(EOF, false)
 
-	ast, tokens := final.Call(tokens)
-	checkAst(t, true, ast)
+	a, tokens := final.Call(tokens)
+	ast.CheckAst(t, true, a)
 
 	tokens = tok.Tokenize("(((((+))))")
-	ast, tokens = final.Call(tokens)
-	checkAst(t, false, ast)
+	a, tokens = final.Call(tokens)
+	ast.CheckAst(t, false, a)
 
 }
 
@@ -136,7 +124,7 @@ func TestRep(t *testing.T) {
 		Rep(&add).And(EOF, false)
 
 	a, tokens = p.Call(tokens)
-	checkAst(t, true, a)
+	ast.CheckAst(t, true, a)
 
 	if len(tokens) != 0 {
 		t.Errorf("Tokens must be consumed, got %v", tokens)

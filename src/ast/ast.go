@@ -2,10 +2,13 @@ package ast
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
+
+type Eval func([]*AST, *asm.Code)
 
 type ASTType struct{}
 
@@ -13,7 +16,7 @@ type AST struct {
 	nodes []*AST
 	Token *tok.Token
 	atype *ASTType
-	eval  func([]*AST, *asm.Code)
+	eval  Eval
 }
 
 func (a *AST) Node(i int) AST {
@@ -74,4 +77,21 @@ func (a AST) Eval(code *asm.Code) {
 
 	}
 
+}
+
+func (a *AST) SetEval(f Eval) {
+	a.eval = f
+
+}
+
+func CheckAst(t *testing.T, success bool, a AST) {
+	if success && a.Fail() {
+		t.Errorf("Expected to succeed in parsing, got failed.")
+
+	}
+
+	if !success && !a.Fail() {
+		t.Errorf("Expected to fail at parsing, got %v.", a.Token.Val())
+
+	}
 }

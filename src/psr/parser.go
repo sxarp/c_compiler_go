@@ -151,3 +151,10 @@ func (lhsp Parser) Trans(f func(ast.AST) ast.AST) Parser {
 
 	return Parser{Call: call}
 }
+
+func (lhsp Parser) SetEval(f ast.Eval) Parser {
+	return lhsp.Trans(func(a ast.AST) ast.AST {
+		a.SetEval(f)
+		return a
+	})
+}

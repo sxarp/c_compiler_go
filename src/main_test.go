@@ -49,7 +49,8 @@ func TestComp(t *testing.T) {
 .global main
 
 main:
-        mov rax, 42
+        push 42
+        pop rax
         ret
 `
 
@@ -65,6 +66,10 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "0", "1 - 1")
 	compare(t, "2", "1 - 5 + 6")
 	compare(t, "3", "1 - 2 + 3 -4 + 5")
+	compare(t, "3", "7 - (2 + 3) -4 + 5")
+	compare(t, "9", "1 + (2 - 1) - (1 - (3 + 5) )")
+	compare(t, "2", "1 * (2 - 1) - (1 - (10 / 5) )")
+	compare(t, "10", "1 * (2 / 1) * 8 - 6")
 
 	// Only 8bits are available for the parent processes, then exit codes are in 0 ~ 255.
 	// https://unix.stackexchange.com/questions/418784/what-is-the-min-and-max-values-of-exit-codes-in-linux
