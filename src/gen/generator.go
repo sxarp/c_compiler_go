@@ -61,7 +61,7 @@ func returner(term *psr.Parser) psr.Parser {
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {
 			checkNodeCount(nodes, 1)
 			nodes[0].Eval(code)
-			code.Ins(asm.I().Pop().Rax())
+			code.Ins(asm.I().Pop().Rax()).Ins(asm.I().Ret())
 		})
 }
 

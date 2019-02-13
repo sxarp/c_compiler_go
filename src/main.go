@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
+	"github.com/sxarp/c_compiler_go/src/gen"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -31,45 +32,13 @@ func preprocess(s string) string {
 func compile(tcode string) string {
 	pcode := preprocess(tcode)
 	tokens := tok.Tokenize(pcode)
+
 	acode := asm.New()
+	if ast, rem := gen.Generator().Call(tokens); len(rem) == 0 {
+		ast.Eval(acode.Main())
 
-	var token tok.Token
-
-	acode.Main()
-
-Loop:
-	for {
-		token, tokens = tok.Ht(tokens)
-
-		switch {
-		case token.Is(&tok.TInt):
-			acode.Ins(asm.I().Mov().Rax().Val(token.Vali()))
-		case token.Is(&tok.TPlus):
-			token, tokens = tok.Ht(tokens)
-			if token.Is(&tok.TInt) {
-				acode.Ins(asm.I().Add().Rax().Val(token.Vali()))
-
-			} else {
-				panic("Expected Int token!")
-
-			}
-		case token.Is(&tok.TMinus):
-			token, tokens = tok.Ht(tokens)
-			if token.Is(&tok.TInt) {
-				acode.Ins(asm.I().Sub().Rax().Val(token.Vali()))
-
-			} else {
-				panic("Expected Int token!")
-
-			}
-		case token.Is(&tok.TEOF):
-			acode.Ins(asm.I().Ret())
-			break Loop
-		default:
-			panic("Invalid token!")
-
-		}
-
+	} else {
+		panic("Failed to parse!")
 	}
 	return acode.Str()
 }
