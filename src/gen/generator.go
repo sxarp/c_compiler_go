@@ -23,18 +23,31 @@ var numInt = andId().And(psr.Int, true).
 		code.Ins(asm.I().Push().Val(i))
 	})
 
-var adder = func(term *psr.Parser) psr.Parser {
-	return andId().And(psr.Plus, false).And(term, true).
+func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr.Parser {
+	return andId().And(operator, false).And(term, true).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {
 			checkNodeCount(nodes, 1)
 			nodes[0].Eval(code)
+
 			code.
 				Ins(asm.I().Pop().Rdi()).
-				Ins(asm.I().Pop().Rax()).
-				Ins(asm.I().Add().Rax().Rdi()).
-				Ins(asm.I().Push().Rax())
+				Ins(asm.I().Pop().Rax())
+
+			for _, i := range insts {
+				code.Ins(i)
+			}
+
+			code.Ins(asm.I().Push().Rax())
 		})
 
+}
+
+func adder(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Plus, []asm.Fin{asm.I().Add().Rax().Rdi()})
+}
+
+func subber(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
 }
 
 func GenParser() psr.Parser {

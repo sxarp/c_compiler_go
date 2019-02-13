@@ -99,3 +99,23 @@ func TestAdder(t *testing.T) {
 		compCode(t, adder(&numInt), c)
 	}
 }
+
+func TestSubber(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"-2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Sub().Rax().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, subber(&numInt), c)
+	}
+}
