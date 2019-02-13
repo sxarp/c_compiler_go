@@ -56,6 +56,10 @@ func addsubs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&addsub).Trans(ast.PopSingle)
 }
 
+func muler(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Mul, []asm.Fin{asm.I().Mul().Rdi()})
+}
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {
