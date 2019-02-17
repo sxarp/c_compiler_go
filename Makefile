@@ -6,7 +6,11 @@ ensure=$(dcex) dep ensure
 
 test:
 	$(ensure)
-	$(test) -v -cover -count=1 ./... # run tests without using cache
+	$(test) -cover -count=1 ./... # run tests without using cache
+
+testv:
+	$(ensure)
+	$(test) -cover -v -count=1 ./... # run tests without using cache
 
 unit:
 	$(ensure)
