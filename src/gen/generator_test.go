@@ -220,24 +220,6 @@ func TestPopRax(t *testing.T) {
 	}
 }
 
-func TestReturner(t *testing.T) {
-
-	for _, c := range []psrTestCase{
-		{
-
-			"1",
-			[]asm.Fin{
-				asm.I().Push().Val(1),
-				asm.I().Pop().Rax(),
-				asm.I().Ret(),
-			},
-			true,
-		},
-	} {
-		compCode(t, returner(&numInt), c)
-	}
-}
-
 func TestFuncWrapper(t *testing.T) {
 
 	for _, c := range []psrTestCase{
