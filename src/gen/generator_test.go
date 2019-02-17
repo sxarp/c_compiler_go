@@ -277,6 +277,27 @@ func TestLvIdent(t *testing.T) {
 
 }
 
+func TestRvIdent(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"a",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, rvIdent, c)
+	}
+
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{

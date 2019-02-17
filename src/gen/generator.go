@@ -115,6 +115,16 @@ var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
 
 	})
 
+var rvIdent psr.Parser = andId().And(&lvIdent, true).SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		checkNodeCount(nodes, 1)
+		nodes[0].Eval(code)
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mov().Rax().Rax().P()).
+			Ins(asm.I().Push().Rax())
+	})
+
 func funcWrapper(expr *psr.Parser) psr.Parser {
 	pro := prologue(26)
 	return andId().And(&pro, true).And(expr, true).And(&epilogue, true)
