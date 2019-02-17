@@ -115,5 +115,6 @@ func Generator() psr.Parser {
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(&num)
 
-	return returner(&adds)
+	expr := andId().And(&adds, true).And(&popRax, true)
+	return funcWrapper(&expr).And(psr.EOF, false)
 }

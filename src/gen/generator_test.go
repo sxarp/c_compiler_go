@@ -260,23 +260,38 @@ func TestFuncWrapper(t *testing.T) {
 	}
 }
 
+func wrapInsts(insts []asm.Fin) []asm.Fin {
+	return append(append(
+		[]asm.Fin{
+			asm.I().Push().Rbp(),
+			asm.I().Mov().Rbp().Rsp(),
+			asm.I().Sub().Rsp().Val(8 * 26),
+		},
+		insts...),
+		[]asm.Fin{
+			asm.I().Mov().Rsp().Rbp(),
+			asm.I().Pop().Rbp(),
+			asm.I().Ret(),
+		}...)
+
+}
+
 func TestGenerator(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
 
 			"1",
-			[]asm.Fin{
+			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
-				asm.I().Ret(),
-			},
+			}),
 			true,
 		},
 		{
 
 			"1+1",
-			[]asm.Fin{
+			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rdi(),
@@ -284,14 +299,13 @@ func TestGenerator(t *testing.T) {
 				asm.I().Add().Rax().Rdi(),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
-				asm.I().Ret(),
-			},
+			}),
 			true,
 		},
 		{
 
 			"(1+2)",
-			[]asm.Fin{
+			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
 				asm.I().Pop().Rdi(),
@@ -299,14 +313,13 @@ func TestGenerator(t *testing.T) {
 				asm.I().Add().Rax().Rdi(),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
-				asm.I().Ret(),
-			},
+			}),
 			true,
 		},
 		{
 
 			"(1-(2))",
-			[]asm.Fin{
+			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
 				asm.I().Pop().Rdi(),
@@ -314,8 +327,7 @@ func TestGenerator(t *testing.T) {
 				asm.I().Sub().Rax().Rdi(),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
-				asm.I().Ret(),
-			},
+			}),
 			true,
 		},
 	} {
