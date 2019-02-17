@@ -21,6 +21,8 @@ func TestIns(t *testing.T) {
 	h.Expects(t, "        mul rdi", I().Mul().Rdi().str())
 	h.Expects(t, "        div rdi", I().Div().Rdi().str())
 	h.Expects(t, "        mov rdx, 0", I().Mov().Rdx().Val(0).str())
+	h.Expects(t, "        mov rbp, rsp", I().Mov().Rbp().Rsp().str())
+	h.Expects(t, "        mov rsp, rbp", I().Mov().Rsp().Rbp().str())
 }
 
 func TestFinEq(t *testing.T) {

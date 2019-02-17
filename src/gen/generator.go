@@ -70,13 +70,28 @@ func muldivs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
 }
 
-func returner(term *psr.Parser) psr.Parser {
-	return andId().And(term, true).And(psr.EOF, false).
-		SetEval(func(nodes []*ast.AST, code *asm.Code) {
-			checkNodeCount(nodes, 1)
-			nodes[0].Eval(code)
-			code.Ins(asm.I().Pop().Rax()).Ins(asm.I().Ret())
-		})
+func prologue(numberOfLocalVars int) psr.Parser {
+	return andId().SetEval(func(nodes []*ast.AST, code *asm.Code) {
+		code.
+			Ins(asm.I().Push().Rbp()).
+			Ins(asm.I().Mov().Rbp().Rsp()).
+			Ins(asm.I().Sub().Rsp().Val(8 * numberOfLocalVars))
+	})
+}
+
+var epilogue psr.Parser = andId().SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		code.
+			Ins(asm.I().Mov().Rsp().Rbp()).
+			Ins(asm.I().Pop().Rbp()).
+			Ins(asm.I().Ret())
+	})
+
+var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+
+func funcWrapper(expr *psr.Parser) psr.Parser {
+	pro := prologue(26)
+	return andId().And(&pro, true).And(expr, true).And(&epilogue, true)
 }
 
 func Generator() psr.Parser {
@@ -91,5 +106,6 @@ func Generator() psr.Parser {
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(&num)
 
-	return returner(&adds)
+	expr := andId().And(&adds, true).And(&popRax, true)
+	return funcWrapper(&expr).And(psr.EOF, false)
 }

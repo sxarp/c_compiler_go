@@ -37,6 +37,9 @@ func TestTokens(t *testing.T) {
 	tk, _ := TInt.match("10")
 	h.Expecti(t, 10, tk.Vali())
 
+	expectToken(t, TSinVar, "a", "a", "")
+	expectToken(t, TSinVar, "za", "z", "a")
+	expectToken(t, TSinVar, "A", "FAIL", "A")
 }
 
 func expectTokens(t *testing.T, tker func(string) []Token, s string, expectedTokens []string) {
@@ -76,8 +79,9 @@ func TestTokenizer(t *testing.T) {
 		[]string{"+", "-", "EOF"})
 	expectTokens(t, GenTokenizer([]*TokenType{&TPlus, &TMinus, &TInt}), "+23-11",
 		[]string{"+", "23", "-", "11", "EOF"})
-
 	expectTokens(t, Tokenize, "+23-11", []string{"+", "23", "-", "11", "EOF"})
+	expectTokens(t, Tokenize, "a+b=", []string{"a", "+", "b", "=", "EOF"})
+	expectTokens(t, Tokenize, "a+b=;", []string{"a", "+", "b", "=", ";", "EOF"})
 }
 
 func TestHt(t *testing.T) {

@@ -19,7 +19,6 @@ type Token struct {
 
 func (t *Token) Val() string {
 	return *(t.valp)
-
 }
 
 func (t *Token) Vali() int {
@@ -28,13 +27,11 @@ func (t *Token) Vali() int {
 
 	}
 
-	return t.tt.vali(*(t.valp))
-
+	return t.tt.vali(t.Val())
 }
 
 func (t *Token) Is(tt *TokenType) bool {
 	return t.tt == tt
-
 }
 
 var TFail TokenType = TokenType{literal: "FAIL"}
@@ -104,16 +101,18 @@ var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
 		}
 	},
 }
+var TSinVar TokenType = TokenType{regex: regexp.MustCompile("^[a-z]")}
 var TLPar TokenType = TokenType{literal: "("}
 var TRPar TokenType = TokenType{literal: ")"}
 var TMul TokenType = TokenType{literal: "*"}
 var TDiv TokenType = TokenType{literal: "/"}
+var TSubs TokenType = TokenType{literal: "="}
+var TSemi TokenType = TokenType{literal: ";"}
 
-var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv}
+var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TSinVar, &TSemi}
 
 func Tokenize(s string) []Token {
 	return tokenize(TokenTypes, s)
-
 }
 
 func Ht(ts []Token) (Token, []Token) {
@@ -123,5 +122,4 @@ func Ht(ts []Token) (Token, []Token) {
 	}
 
 	return ts[0], ts[1:]
-
 }
