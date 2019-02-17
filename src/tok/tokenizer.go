@@ -19,7 +19,6 @@ type Token struct {
 
 func (t *Token) Val() string {
 	return *(t.valp)
-
 }
 
 func (t *Token) Vali() int {
@@ -28,13 +27,11 @@ func (t *Token) Vali() int {
 
 	}
 
-	return t.tt.vali(*(t.valp))
-
+	return t.tt.vali(t.Val())
 }
 
 func (t *Token) Is(tt *TokenType) bool {
 	return t.tt == tt
-
 }
 
 var TFail TokenType = TokenType{literal: "FAIL"}
@@ -113,7 +110,6 @@ var TokenTypes = []*TokenType{&TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TD
 
 func Tokenize(s string) []Token {
 	return tokenize(TokenTypes, s)
-
 }
 
 func Ht(ts []Token) (Token, []Token) {
@@ -123,5 +119,4 @@ func Ht(ts []Token) (Token, []Token) {
 	}
 
 	return ts[0], ts[1:]
-
 }
