@@ -79,6 +79,14 @@ func prologue(numberOfLocalVar int) psr.Parser {
 	})
 }
 
+var epilogue psr.Parser = andId().SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		code.
+			Ins(asm.I().Mov().Rsp().Rbp()).
+			Ins(asm.I().Pop().Rbp()).
+			Ins(asm.I().Ret())
+	})
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {

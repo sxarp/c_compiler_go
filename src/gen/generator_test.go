@@ -189,6 +189,23 @@ func TestPrologue(t *testing.T) {
 	}
 }
 
+func TestEpilogue(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"",
+			[]asm.Fin{
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+		},
+	} {
+		compCode(t, epilogue, c)
+	}
+}
+
 func TestReturner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
