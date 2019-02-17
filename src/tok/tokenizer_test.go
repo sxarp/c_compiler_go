@@ -80,7 +80,7 @@ func TestTokenizer(t *testing.T) {
 	expectTokens(t, GenTokenizer([]*TokenType{&TPlus, &TMinus, &TInt}), "+23-11",
 		[]string{"+", "23", "-", "11", "EOF"})
 	expectTokens(t, Tokenize, "+23-11", []string{"+", "23", "-", "11", "EOF"})
-	expectTokens(t, Tokenize, "a+b", []string{"a", "+", "b", "EOF"})
+	expectTokens(t, Tokenize, "a+b=", []string{"a", "+", "b", "=", "EOF"})
 }
 
 func TestHt(t *testing.T) {
