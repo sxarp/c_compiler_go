@@ -11,6 +11,8 @@ import (
 var orId = psr.OrId
 var andId = psr.AndId
 
+const wordSize = 8
+
 func checkNodeCount(nodes []*ast.AST, count int) {
 	if l := len(nodes); l != count {
 		panic(fmt.Sprintf("The number of nodes must be %d, got %d.", count, l))
@@ -88,7 +90,7 @@ func prologue(numberOfLocalVars int) psr.Parser {
 		code.
 			Ins(asm.I().Push().Rbp()).
 			Ins(asm.I().Mov().Rbp().Rsp()).
-			Ins(asm.I().Sub().Rsp().Val(8 * numberOfLocalVars))
+			Ins(asm.I().Sub().Rsp().Val(wordSize * numberOfLocalVars))
 	})
 }
 
@@ -101,6 +103,17 @@ var epilogue psr.Parser = andId().SetEval(
 	})
 
 var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+
+var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		checkNodeCount(nodes, 1)
+		offSet := wordSize * (1 + alpaToNum([]rune(nodes[0].Token.Val())[0]))
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(offSet)).
+			Ins(asm.I().Push().Rax())
+
+	})
 
 func funcWrapper(expr *psr.Parser) psr.Parser {
 	pro := prologue(26)

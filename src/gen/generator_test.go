@@ -234,7 +234,7 @@ func TestFuncWrapper(t *testing.T) {
 			[]asm.Fin{
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(8 * 26),
+				asm.I().Sub().Rsp().Val(wordSize * 26),
 				asm.I().Push().Val(1),
 				asm.I().Mov().Rsp().Rbp(),
 				asm.I().Pop().Rbp(),
@@ -247,12 +247,42 @@ func TestFuncWrapper(t *testing.T) {
 	}
 }
 
+func TestLvIdent(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"a",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+
+		{
+
+			"z",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 26),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, lvIdent, c)
+	}
+
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{
 			asm.I().Push().Rbp(),
 			asm.I().Mov().Rbp().Rsp(),
-			asm.I().Sub().Rsp().Val(8 * 26),
+			asm.I().Sub().Rsp().Val(wordSize * 26),
 		},
 		insts...),
 		[]asm.Fin{
