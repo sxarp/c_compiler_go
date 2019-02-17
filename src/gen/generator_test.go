@@ -206,6 +206,21 @@ func TestEpilogue(t *testing.T) {
 	}
 }
 
+func TestPopRax(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"",
+			[]asm.Fin{
+				asm.I().Pop().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, popRax, c)
+	}
+}
+
 func TestReturner(t *testing.T) {
 
 	for _, c := range []psrTestCase{

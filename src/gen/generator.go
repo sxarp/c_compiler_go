@@ -87,6 +87,8 @@ var epilogue psr.Parser = andId().SetEval(
 			Ins(asm.I().Ret())
 	})
 
+var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {
