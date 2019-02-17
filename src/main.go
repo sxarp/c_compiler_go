@@ -18,7 +18,7 @@ func preprocess(s string) string {
 	rets := ""
 
 	for _, c := range s {
-		if c == ' ' {
+		if c == ' ' || c == '\n' {
 			continue
 		}
 

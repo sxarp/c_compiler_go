@@ -147,7 +147,7 @@ func funcWrapper(expr *psr.Parser) psr.Parser {
 }
 
 func Generator() psr.Parser {
-	num := orId().Or(&numInt)
+	num := orId().Or(&numInt).Or(&rvIdent)
 
 	term := orId()
 	muls := andId()
@@ -158,6 +158,11 @@ func Generator() psr.Parser {
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(&num)
 
-	expr := andId().And(&adds, true).And(&popRax, true)
-	return funcWrapper(&expr).And(psr.EOF, false)
+	expr := andId()
+	assign := assigner(&lvIdent, &expr)
+	expr = orId().Or(&assign).Or(&adds)
+
+	line := andId().And(&expr, true).And(psr.Semi, false).And(&popRax, true)
+	lines := andId().Rep(&line)
+	return funcWrapper(&lines).And(psr.EOF, false)
 }

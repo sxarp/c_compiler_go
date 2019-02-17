@@ -340,7 +340,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"1",
+			"1;",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -349,7 +349,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"1+1",
+			"1+1;",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -363,7 +363,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1+2)",
+			"(1+2);",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -377,7 +377,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1-(2))",
+			"(1-(2));",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
