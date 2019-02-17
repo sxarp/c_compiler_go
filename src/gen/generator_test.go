@@ -298,6 +298,27 @@ func TestRvIdent(t *testing.T) {
 
 }
 
+func TestAssigner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"1=2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().P().Rax(),
+				asm.I().Push().Rax(),
+			},
+			true,
+		},
+	} {
+		compCode(t, assigner(&numInt, &numInt), c)
+	}
+
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{

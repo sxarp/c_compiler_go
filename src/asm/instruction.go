@@ -156,6 +156,7 @@ func (i Oped) Rax() Dested { return toDested(i.i, Rax) }
 func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
 func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
 func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
+func (i Oped) Rdi() Dested { return toDested(i.i, Rdi) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s

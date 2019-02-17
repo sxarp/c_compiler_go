@@ -125,6 +125,22 @@ var rvIdent psr.Parser = andId().And(&lvIdent, true).SetEval(
 			Ins(asm.I().Push().Rax())
 	})
 
+func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
+	return andId().And(lv, true).And(psr.Subs, false).And(rv, true).SetEval(
+		func(nodes []*ast.AST, code *asm.Code) {
+			checkNodeCount(nodes, 2)
+
+			nodes[1].Eval(code) // Evaluate right value
+			nodes[0].Eval(code) // Evaluate left value
+			code.
+				Ins(asm.I().Pop().Rdi()).           // load lv to rdi
+				Ins(asm.I().Pop().Rax()).           // load rv to rax
+				Ins(asm.I().Mov().Rdi().P().Rax()). // mv rax to [lv]
+				Ins(asm.I().Push().Rax())
+
+		})
+}
+
 func funcWrapper(expr *psr.Parser) psr.Parser {
 	pro := prologue(26)
 	return andId().And(&pro, true).And(expr, true).And(&epilogue, true)
