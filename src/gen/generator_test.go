@@ -25,7 +25,6 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	a, _ := p.Call(tok.Tokenize(c.rcode))
 	a.Eval(&rhs)
 	h.Expectt(t, c.tf, lhs.Eq(&rhs))
-
 }
 
 func TestNunInt(t *testing.T) {
@@ -236,6 +235,28 @@ func TestReturner(t *testing.T) {
 		},
 	} {
 		compCode(t, returner(&numInt), c)
+	}
+}
+
+func TestFuncWrapper(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"1",
+			[]asm.Fin{
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(8 * 26),
+				asm.I().Push().Val(1),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+		},
+	} {
+		compCode(t, funcWrapper(&numInt), c)
 	}
 }
 

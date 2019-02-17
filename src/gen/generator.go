@@ -98,6 +98,11 @@ func returner(term *psr.Parser) psr.Parser {
 		})
 }
 
+func funcWrapper(expr *psr.Parser) psr.Parser {
+	pro := prologue(26)
+	return andId().And(&pro, true).And(expr, true).And(&epilogue, true)
+}
+
 func Generator() psr.Parser {
 	num := orId().Or(&numInt)
 
