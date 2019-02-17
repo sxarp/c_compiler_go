@@ -70,6 +70,15 @@ func muldivs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
 }
 
+func prologue(numberOfLocalVar int) psr.Parser {
+	return andId().SetEval(func(nodes []*ast.AST, code *asm.Code) {
+		code.
+			Ins(asm.I().Push().Rbp()).
+			Ins(asm.I().Mov().Rbp().Rsp()).
+			Ins(asm.I().Sub().Rsp().Val(8 * numberOfLocalVar))
+	})
+}
+
 func returner(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).And(psr.EOF, false).
 		SetEval(func(nodes []*ast.AST, code *asm.Code) {

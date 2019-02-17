@@ -171,6 +171,24 @@ func TestMuldivs(t *testing.T) {
 	}
 }
 
+func TestPrologue(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"",
+			[]asm.Fin{
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(16),
+			},
+			true,
+		},
+	} {
+		compCode(t, prologue(2), c)
+	}
+}
+
 func TestReturner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
