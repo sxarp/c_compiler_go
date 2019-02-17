@@ -27,6 +27,11 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	h.Expectt(t, c.tf, lhs.Eq(&rhs))
 }
 
+func TestAlphaToNum(t *testing.T) {
+	h.Expecti(t, 0, alpaToNum('a'))
+	h.Expecti(t, 25, alpaToNum('z'))
+}
+
 func TestNunInt(t *testing.T) {
 
 	for _, c := range []psrTestCase{

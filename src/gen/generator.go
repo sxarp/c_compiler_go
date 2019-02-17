@@ -42,6 +42,19 @@ func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr
 
 }
 
+func alpaToNum(alphabet rune) int {
+	var alphabets = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+		'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'w', 'z'}
+
+	for i, c := range alphabets {
+		if c == alphabet {
+			return i
+		}
+	}
+
+	panic(fmt.Sprintf("Failed to convert %c into an integer.", alphabet))
+}
+
 func adder(term *psr.Parser) psr.Parser {
 	return binaryOperator(term, psr.Plus, []asm.Fin{asm.I().Add().Rax().Rdi()})
 }
