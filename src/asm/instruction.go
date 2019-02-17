@@ -41,6 +41,9 @@ type Ins struct {
 	dest Reg
 	srcR Reg
 	srcI int
+
+	destP bool
+	srcP  bool
 }
 
 func (i Ins) str() string {
@@ -65,10 +68,18 @@ func (i Ins) str() string {
 		return sb.Str()
 	}
 
-	sb.Put(" ").Put(i.dest.str()).Put(",")
+	dest := i.dest.str()
+	if i.destP {
+		dest = fmt.Sprintf("[%s]", dest)
+	}
+	sb.Put(" ").Put(dest).Put(",")
 
 	if !i.srcR.nil() {
-		sb.Put(" ").Put(i.srcR.str())
+		src := i.srcR.str()
+		if i.srcP {
+			src = fmt.Sprintf("[%s]", src)
+		}
+		sb.Put(" ").Put(src)
 		return sb.Str()
 	}
 
@@ -136,10 +147,16 @@ func (i Ini) Push() Dested { return opeDested(i.i, OPush) }
 func (i Ini) Mul() Dested  { return opeDested(i.i, OMul) }
 func (i Ini) Div() Dested  { return opeDested(i.i, ODiv) }
 
+func (i Dested) P() Dested {
+	i.i.destP = true
+	return i
+}
+
 func (i Oped) Rax() Dested { return toDested(i.i, Rax) }
 func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
 func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
 func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
+func (i Oped) Rdi() Dested { return toDested(i.i, Rdi) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
@@ -150,3 +167,8 @@ func (i Dested) Rax() Fin { return regFin(i.i, Rax) }
 func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
 func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
 func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
+
+func (i Fin) P() Fin {
+	i.i.srcP = true
+	return i
+}

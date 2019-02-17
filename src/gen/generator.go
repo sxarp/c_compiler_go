@@ -11,6 +11,8 @@ import (
 var orId = psr.OrId
 var andId = psr.AndId
 
+const wordSize = 8
+
 func checkNodeCount(nodes []*ast.AST, count int) {
 	if l := len(nodes); l != count {
 		panic(fmt.Sprintf("The number of nodes must be %d, got %d.", count, l))
@@ -40,6 +42,19 @@ func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr
 			code.Ins(asm.I().Push().Rax())
 		})
 
+}
+
+func alphaToNum(alphabet rune) int {
+	var alphabets = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+		'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'w', 'z'}
+
+	for i, c := range alphabets {
+		if c == alphabet {
+			return i
+		}
+	}
+
+	panic(fmt.Sprintf("Failed to convert %c into an integer.", alphabet))
 }
 
 func adder(term *psr.Parser) psr.Parser {
@@ -75,7 +90,7 @@ func prologue(numberOfLocalVars int) psr.Parser {
 		code.
 			Ins(asm.I().Push().Rbp()).
 			Ins(asm.I().Mov().Rbp().Rsp()).
-			Ins(asm.I().Sub().Rsp().Val(8 * numberOfLocalVars))
+			Ins(asm.I().Sub().Rsp().Val(wordSize * numberOfLocalVars))
 	})
 }
 
@@ -89,13 +104,50 @@ var epilogue psr.Parser = andId().SetEval(
 
 var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) { code.Ins(asm.I().Pop().Rax()) })
 
+var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		checkNodeCount(nodes, 1)
+		offSet := wordSize * (1 + alphaToNum([]rune(nodes[0].Token.Val())[0]))
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(offSet)).
+			Ins(asm.I().Push().Rax())
+
+	})
+
+var rvIdent psr.Parser = andId().And(&lvIdent, true).SetEval(
+	func(nodes []*ast.AST, code *asm.Code) {
+		checkNodeCount(nodes, 1)
+		nodes[0].Eval(code)
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mov().Rax().Rax().P()).
+			Ins(asm.I().Push().Rax())
+	})
+
+func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
+	return andId().And(lv, true).And(psr.Subs, false).And(rv, true).SetEval(
+		func(nodes []*ast.AST, code *asm.Code) {
+			checkNodeCount(nodes, 2)
+
+			nodes[1].Eval(code) // Evaluate right value
+			nodes[0].Eval(code) // Evaluate left value
+			code.
+				Ins(asm.I().Pop().Rdi()).           // load lv to rdi
+				Ins(asm.I().Pop().Rax()).           // load rv to rax
+				Ins(asm.I().Mov().Rdi().P().Rax()). // mv rax to [lv]
+				Ins(asm.I().Push().Rax())
+
+		})
+}
+
 func funcWrapper(expr *psr.Parser) psr.Parser {
 	pro := prologue(26)
 	return andId().And(&pro, true).And(expr, true).And(&epilogue, true)
 }
 
 func Generator() psr.Parser {
-	num := orId().Or(&numInt)
+	num := orId().Or(&numInt).Or(&rvIdent)
 
 	term := orId()
 	muls := andId()
@@ -106,6 +158,11 @@ func Generator() psr.Parser {
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(&num)
 
-	expr := andId().And(&adds, true).And(&popRax, true)
-	return funcWrapper(&expr).And(psr.EOF, false)
+	expr := andId()
+	assign := assigner(&lvIdent, &expr)
+	expr = orId().Or(&assign).Or(&adds)
+
+	line := andId().And(&expr, true).And(psr.Semi, false).And(&popRax, true)
+	lines := andId().Rep(&line)
+	return funcWrapper(&lines).And(psr.EOF, false)
 }
