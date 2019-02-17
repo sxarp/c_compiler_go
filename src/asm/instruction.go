@@ -17,6 +17,8 @@ func (r Reg) nil() bool   { return r.r == "" }
 func Rax() Reg { return Reg{r: "rax"} }
 func Rdi() Reg { return Reg{r: "rdi"} }
 func Rdx() Reg { return Reg{r: "rdx"} }
+func Rbp() Reg { return Reg{r: "rbp"} }
+func Rsp() Reg { return Reg{r: "rsp"} }
 
 type Ope struct {
 	i string
@@ -136,6 +138,8 @@ func (i Ini) Div() Dested  { return opeDested(i.i, ODiv) }
 
 func (i Oped) Rax() Dested { return toDested(i.i, Rax) }
 func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
+func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
+func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
@@ -144,3 +148,5 @@ func (i Dested) Val(s int) Fin {
 
 func (i Dested) Rax() Fin { return regFin(i.i, Rax) }
 func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
+func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
+func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
