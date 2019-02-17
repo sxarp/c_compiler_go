@@ -28,8 +28,8 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 }
 
 func TestAlphaToNum(t *testing.T) {
-	h.Expecti(t, 0, alpaToNum('a'))
-	h.Expecti(t, 25, alpaToNum('z'))
+	h.Expecti(t, 0, alphaToNum('a'))
+	h.Expecti(t, 25, alphaToNum('z'))
 }
 
 func TestNunInt(t *testing.T) {

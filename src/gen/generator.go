@@ -44,7 +44,7 @@ func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr
 
 }
 
-func alpaToNum(alphabet rune) int {
+func alphaToNum(alphabet rune) int {
 	var alphabets = []rune{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 		'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'w', 'z'}
 
@@ -107,7 +107,7 @@ var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) {
 var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
 	func(nodes []*ast.AST, code *asm.Code) {
 		checkNodeCount(nodes, 1)
-		offSet := wordSize * (1 + alpaToNum([]rune(nodes[0].Token.Val())[0]))
+		offSet := wordSize * (1 + alphaToNum([]rune(nodes[0].Token.Val())[0]))
 		code.
 			Ins(asm.I().Mov().Rax().Rbp()).
 			Ins(asm.I().Sub().Rax().Val(offSet)).
