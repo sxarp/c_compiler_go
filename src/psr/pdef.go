@@ -15,7 +15,7 @@ var Div *Parser = tokenTypeToPsr(&tok.TDiv)
 var EOF *Parser = tokenTypeToPsr(&tok.TEOF)
 var Semi *Parser = tokenTypeToPsr(&tok.TSemi)
 var Subs *Parser = tokenTypeToPsr(&tok.TSubs)
-var SinVar *Parser = tokenTypeToPsr(&tok.TSinVar)
+var Var *Parser = tokenTypeToPsr(&tok.TVar)
 
 func GenParser() Parser {
 	numv := OrId().Or(Int)

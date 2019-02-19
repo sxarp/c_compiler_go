@@ -38,9 +38,9 @@ func TestTokens(t *testing.T) {
 	tk, _ := TInt.match("10")
 	h.Expecti(t, 10, tk.Vali())
 
-	expectToken(t, TSinVar, "a", "a", "")
-	expectToken(t, TSinVar, "za", "z", "a")
-	expectToken(t, TSinVar, "A", "FAIL", "A")
+	expectToken(t, TVar, "a", "a", "")
+	expectToken(t, TVar, "zA123%%", "zA123", "%%")
+	expectToken(t, TVar, "A", "A", "")
 }
 
 func expectTokens(t *testing.T, tker func(string) []Token, s string, expectedTokens []string) {

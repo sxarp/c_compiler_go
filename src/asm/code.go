@@ -6,6 +6,7 @@ import (
 
 type Code interface {
 	Ins(Fin) Code
+	For(func(int, Fin))
 }
 
 type Insts struct {
@@ -42,6 +43,14 @@ func (is *Insts) Ins(i Fin) Code {
 
 	return is
 }
+
+func (is *Insts) For(f func(int, Fin)) {
+	for c, i := range is.insts {
+		f(c, i)
+	}
+}
+
+func (is *Insts) Concat(c Code) { c.For(func(i int, f Fin) { is.Ins(f) }) }
 
 func (is *Insts) ForEachInst(f func(Fin)) {
 
