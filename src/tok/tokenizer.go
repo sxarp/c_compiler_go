@@ -101,7 +101,7 @@ var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
 		}
 	},
 }
-var TSinVar TokenType = TokenType{regex: regexp.MustCompile("^[a-z]")}
+var TVar TokenType = TokenType{regex: regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*")}
 var TLPar TokenType = TokenType{literal: "("}
 var TRPar TokenType = TokenType{literal: ")"}
 var TMul TokenType = TokenType{literal: "*"}
@@ -109,7 +109,7 @@ var TDiv TokenType = TokenType{literal: "/"}
 var TSubs TokenType = TokenType{literal: "="}
 var TSemi TokenType = TokenType{literal: ";"}
 
-var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TSinVar, &TSemi}
+var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TVar, &TSemi}
 
 func Tokenize(s string) []Token {
 	return tokenize(TokenTypes, s)

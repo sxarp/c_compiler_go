@@ -52,7 +52,7 @@ func TestComp(t *testing.T) {
 main:
         push rbp
         mov rbp, rsp
-        sub rsp, 208
+        sub rsp, 0
         push 42
         pop rax
         mov rsp, rbp
@@ -99,6 +99,15 @@ c = a; a = a + b; b = c;
 c = a; a = a + b; b = c;
 c = a; a = a + b; b = c;
 a;
+`)
+	compare(t, "0",
+		`
+alpha = 32;
+beta = 11;
+gamma = 28;
+lhs = (alpha + beta + gamma)*(alpha * beta + beta * gamma + gamma * alpha) - alpha * beta * gamma;
+rhs = (alpha + beta)*(beta + gamma)*(gamma + alpha);
+lhs - rhs;
 `)
 
 }

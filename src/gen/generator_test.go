@@ -28,11 +28,6 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	h.Expectt(t, c.tf, lhs.Eq(rhs))
 }
 
-func TestAlphaToNum(t *testing.T) {
-	h.Expecti(t, 0, alphaToNum('a'))
-	h.Expecti(t, 25, alphaToNum('z'))
-}
-
 func TestNunInt(t *testing.T) {
 
 	for _, c := range []psrTestCase{
@@ -176,7 +171,7 @@ func TestMuldivs(t *testing.T) {
 	}
 }
 
-func TestPrologue(t *testing.T) {
+func TestProloguer(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
@@ -190,7 +185,10 @@ func TestPrologue(t *testing.T) {
 			true,
 		},
 	} {
-		compCode(t, prologue(2), c)
+		st := newST()
+		st.RefOf("0")
+		st.RefOf("1")
+		compCode(t, prologuer(st), c)
 	}
 }
 
@@ -235,7 +233,7 @@ func TestFuncWrapper(t *testing.T) {
 			[]asm.Fin{
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 26),
+				asm.I().Sub().Rsp().Val(wordSize * 2),
 				asm.I().Push().Val(1),
 				asm.I().Mov().Rsp().Rbp(),
 				asm.I().Pop().Rbp(),
@@ -244,11 +242,14 @@ func TestFuncWrapper(t *testing.T) {
 			true,
 		},
 	} {
-		compCode(t, funcWrapper(&numInt), c)
+		st := newST()
+		st.RefOf("0")
+		st.RefOf("1")
+		compCode(t, funcWrapper(&numInt, st), c)
 	}
 }
 
-func TestLvIdent(t *testing.T) {
+func TestLvIdenter(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
@@ -267,13 +268,13 @@ func TestLvIdent(t *testing.T) {
 			"z",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 26),
+				asm.I().Sub().Rax().Val(wordSize * 1),
 				asm.I().Push().Rax(),
 			},
 			true,
 		},
 	} {
-		compCode(t, lvIdent, c)
+		compCode(t, lvIdenter(newST()), c)
 	}
 
 }
@@ -294,7 +295,8 @@ func TestRvIdent(t *testing.T) {
 			true,
 		},
 	} {
-		compCode(t, rvIdent, c)
+		lvIdent := lvIdenter(newST())
+		compCode(t, rvIdenter(&lvIdent), c)
 	}
 
 }
@@ -325,7 +327,7 @@ func wrapInsts(insts []asm.Fin) []asm.Fin {
 		[]asm.Fin{
 			asm.I().Push().Rbp(),
 			asm.I().Mov().Rbp().Rsp(),
-			asm.I().Sub().Rsp().Val(wordSize * 26),
+			asm.I().Sub().Rsp().Val(wordSize * 0),
 		},
 		insts...),
 		[]asm.Fin{
