@@ -43,3 +43,21 @@ func TestEq(t *testing.T) {
 	}
 
 }
+
+func TestFor(t *testing.T) {
+	lhs := New()
+	lhs.
+		Ins(I().Ret()).
+		Ins(I().Mov().Rax().Rdi()).
+		Ins(I().Mov().Rax().Rax())
+
+	rhs := New()
+	rhs.Ins(I().Ret())
+	rhs.Concat(New().
+		Ins(I().Mov().Rax().Rdi()).
+		Ins(I().Mov().Rax().Rax()))
+
+	if !lhs.Eq(rhs) {
+		t.Errorf("Expected to get the same Insts.")
+	}
+}
