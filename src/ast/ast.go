@@ -8,7 +8,7 @@ import (
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
-type Eval func([]*AST, *asm.Code)
+type Eval func([]*AST, asm.Code)
 
 type ASTType struct{}
 
@@ -65,7 +65,7 @@ func PopSingle(a AST) AST {
 	}
 }
 
-func (a AST) Eval(code *asm.Code) {
+func (a AST) Eval(code asm.Code) {
 
 	if a.eval == nil {
 		for _, node := range a.nodes {

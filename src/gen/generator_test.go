@@ -24,8 +24,8 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 
 	rhs := asm.New()
 	a, _ := p.Call(tok.Tokenize(c.rcode))
-	a.Eval(&rhs)
-	h.Expectt(t, c.tf, lhs.Eq(&rhs))
+	a.Eval(rhs)
+	h.Expectt(t, c.tf, lhs.Eq(rhs))
 }
 
 func TestAlphaToNum(t *testing.T) {

@@ -4,51 +4,63 @@ import (
 	"github.com/sxarp/c_compiler_go/src/str"
 )
 
-type Code struct {
-	code  *str.Builder
+type Code interface {
+	Ins(Fin) Code
+}
+
+type Insts struct {
 	insts []Fin
 }
 
-func New() Code {
+func New() *Insts {
+	return &Insts{}
+}
+
+type Builder struct {
+	code  *str.Builder
+	insts *Insts
+}
+
+func NewBuilder(is *Insts) *Builder {
 	var sb str.Builder = str.Builder{}
 	sb.Nr()
 	sb.Write(".intel_syntax noprefix")
 	sb.Write(".global main")
 	sb.Nr()
 
-	return Code{code: &sb}
+	return &Builder{code: &sb, insts: is}
 }
 
-func (c *Code) Main() *Code {
-	c.code.Write("main:")
+func (b *Builder) Main() *Builder {
+	b.code.Write("main:")
 
-	return c
+	return b
 }
 
-func (c *Code) Ins(i Fin) *Code {
-	c.insts = append(c.insts, i)
+func (is *Insts) Ins(i Fin) Code {
+	is.insts = append(is.insts, i)
 
-	return c
+	return is
 }
 
-func (c *Code) ForEachInst(f func(Fin)) {
+func (is *Insts) ForEachInst(f func(Fin)) {
 
-	for _, i := range c.insts {
-		f(i)
+	for _, is := range is.insts {
+		f(is)
 	}
 
 }
 
-func (c *Code) Str() string {
-	c.ForEachInst(func(i Fin) {
-		c.code.Write(i.str())
+func (b *Builder) Str() string {
+	b.insts.ForEachInst(func(i Fin) {
+		b.code.Write(i.str())
 	})
 
-	return c.code.Str()
+	return b.code.Str()
 
 }
 
-func (lhs *Code) Eq(rhs *Code) bool {
+func (lhs *Insts) Eq(rhs *Insts) bool {
 	if len(lhs.insts) != len(rhs.insts) {
 		return false
 	}

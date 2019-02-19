@@ -8,7 +8,7 @@ import (
 )
 
 func TestEval(t *testing.T) {
-	addIns := func(nodes []*AST, code *asm.Code) {
+	addIns := func(nodes []*AST, code asm.Code) {
 		code.Ins(asm.I().Ret())
 	}
 
@@ -23,7 +23,7 @@ func TestEval(t *testing.T) {
 	a := AST{nodes: nodes}
 
 	code := asm.New()
-	a.Eval(&code)
+	a.Eval(code)
 
 	numOfInst := 0
 
