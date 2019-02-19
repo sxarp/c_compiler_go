@@ -145,7 +145,11 @@ func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
 			nodes[1].Eval(bottom)
 			nodes[2].Eval(bottom)
 
+			// Evaluate the prologue AST afterwards so that the symbol table can emit
+			// the correct number of variables declared, which is used by the prologue code
+			// to determine the size of the stack to allocate for the variables.
 			nodes[0].Eval(insts)
+
 			insts.Concat(bottom)
 		})
 }
