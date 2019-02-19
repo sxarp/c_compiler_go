@@ -33,12 +33,13 @@ func compile(tcode string) string {
 	pcode := preprocess(tcode)
 	tokens := tok.Tokenize(pcode)
 
-	acode := asm.New()
+	insts := asm.New()
 	if ast, rem := gen.Generator().Call(tokens); len(rem) == 0 {
-		ast.Eval(acode.Main())
+		ast.Eval(insts)
 
 	} else {
 		panic("Failed to parse!")
 	}
-	return acode.Str()
+
+	return asm.NewBuilder(insts).Main().Str()
 }

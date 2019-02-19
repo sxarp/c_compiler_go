@@ -20,14 +20,14 @@ func checkNodeCount(nodes []*ast.AST, count int) {
 }
 
 var numInt = andId().And(psr.Int, true).
-	SetEval(func(nodes []*ast.AST, code *asm.Code) {
+	SetEval(func(nodes []*ast.AST, code asm.Code) {
 		i := nodes[0].Token.Vali()
 		code.Ins(asm.I().Push().Val(i))
 	})
 
 func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr.Parser {
 	return andId().And(operator, false).And(term, true).
-		SetEval(func(nodes []*ast.AST, code *asm.Code) {
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 1)
 			nodes[0].Eval(code)
 
@@ -86,7 +86,7 @@ func muldivs(term *psr.Parser) psr.Parser {
 }
 
 func prologue(numberOfLocalVars int) psr.Parser {
-	return andId().SetEval(func(nodes []*ast.AST, code *asm.Code) {
+	return andId().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.
 			Ins(asm.I().Push().Rbp()).
 			Ins(asm.I().Mov().Rbp().Rsp()).
@@ -95,17 +95,17 @@ func prologue(numberOfLocalVars int) psr.Parser {
 }
 
 var epilogue psr.Parser = andId().SetEval(
-	func(nodes []*ast.AST, code *asm.Code) {
+	func(nodes []*ast.AST, code asm.Code) {
 		code.
 			Ins(asm.I().Mov().Rsp().Rbp()).
 			Ins(asm.I().Pop().Rbp()).
 			Ins(asm.I().Ret())
 	})
 
-var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code *asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
 
 var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
-	func(nodes []*ast.AST, code *asm.Code) {
+	func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 1)
 		offSet := wordSize * (1 + alphaToNum([]rune(nodes[0].Token.Val())[0]))
 		code.
@@ -116,7 +116,7 @@ var lvIdent psr.Parser = andId().And(psr.SinVar, true).SetEval(
 	})
 
 var rvIdent psr.Parser = andId().And(&lvIdent, true).SetEval(
-	func(nodes []*ast.AST, code *asm.Code) {
+	func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 1)
 		nodes[0].Eval(code)
 		code.
@@ -127,7 +127,7 @@ var rvIdent psr.Parser = andId().And(&lvIdent, true).SetEval(
 
 func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 	return andId().And(lv, true).And(psr.Subs, false).And(rv, true).SetEval(
-		func(nodes []*ast.AST, code *asm.Code) {
+		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 
 			nodes[1].Eval(code) // Evaluate right value

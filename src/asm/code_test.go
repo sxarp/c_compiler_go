@@ -30,8 +30,8 @@ func TestEq(t *testing.T) {
 			[]Fin{I().Mov().Rax().Val(23), I().Pop().Rax()}, false,
 		},
 	} {
-		lhs := New()
-		rhs := New()
+		lhs := Insts{}
+		rhs := Insts{}
 
 		for i, _ := range comp.lhs {
 			lhs.Ins(comp.lhs[i])
