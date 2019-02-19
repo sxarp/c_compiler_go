@@ -10,6 +10,7 @@ import (
 )
 
 func execCode(t *testing.T, code string) string {
+	t.Helper()
 
 	b := []byte(code)
 
@@ -36,7 +37,7 @@ func execCode(t *testing.T, code string) string {
 }
 
 func compare(t *testing.T, expected, code string) {
-
+	t.Helper()
 	h.Expects(t, expected, execCode(t, compile(code)))
 
 }

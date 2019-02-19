@@ -16,6 +16,7 @@ type psrTestCase struct {
 }
 
 func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
+	t.Helper()
 	lhs := asm.New()
 	for _, i := range c.ins {
 		lhs.Ins(i)
