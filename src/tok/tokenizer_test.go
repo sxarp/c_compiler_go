@@ -7,6 +7,7 @@ import (
 )
 
 func expectToken(t *testing.T, tt TokenType, inputStr, expectedVal, expectedStr string) {
+	t.Helper()
 	tok, outputStr := tt.match(inputStr)
 	outputVal := tok.Val()
 
@@ -43,6 +44,7 @@ func TestTokens(t *testing.T) {
 }
 
 func expectTokens(t *testing.T, tker func(string) []Token, s string, expectedTokens []string) {
+	t.Helper()
 	tokens := tker(s)
 
 	tokenVals := make([]string, 0)
