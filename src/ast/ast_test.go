@@ -31,5 +31,5 @@ func TestEval(t *testing.T) {
 		*(&numOfInst) += 1
 	})
 
-	h.Expecti(t, numOfInst, 3)
+	h.ExpectEq(t, numOfInst, 3)
 }

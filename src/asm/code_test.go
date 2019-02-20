@@ -38,7 +38,7 @@ func TestEq(t *testing.T) {
 			rhs.Ins(comp.rhs[i])
 		}
 
-		h.Expectt(t, comp.expect, lhs.Eq(&rhs))
+		h.ExpectEq(t, comp.expect, lhs.Eq(&rhs))
 
 	}
 

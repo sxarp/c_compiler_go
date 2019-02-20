@@ -38,7 +38,7 @@ func execCode(t *testing.T, code string) string {
 
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
-	h.Expects(t, expected, execCode(t, compile(code)))
+	h.ExpectEq(t, expected, execCode(t, compile(code)))
 
 }
 
@@ -60,7 +60,7 @@ main:
         ret
 `
 
-	h.Expects(t, expected, compile(r))
+	h.ExpectEq(t, expected, compile(r))
 }
 
 func TestByCamperation(t *testing.T) {
@@ -113,11 +113,11 @@ lhs - rhs;
 }
 
 func TestPreprocess(t *testing.T) {
-	h.Expects(t, preprocess(""), "")
-	h.Expects(t, preprocess("3"), "3")
-	h.Expects(t, preprocess("3 "), "3")
-	h.Expects(t, preprocess(" 12 3"), "123")
-	h.Expects(t, preprocess(`
+	h.ExpectEq(t, preprocess(""), "")
+	h.ExpectEq(t, preprocess("3"), "3")
+	h.ExpectEq(t, preprocess("3 "), "3")
+	h.ExpectEq(t, preprocess(" 12 3"), "123")
+	h.ExpectEq(t, preprocess(`
 aaa
 bbb
 `), "aaabbb")

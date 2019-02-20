@@ -4,25 +4,23 @@ import (
 	"testing"
 )
 
-func Expects(t *testing.T, expected, expect string) {
+func ExpectEq(t *testing.T, expectedValue, gotValue interface{}) {
 	t.Helper()
-	if expected != expect {
-		t.Errorf("Expected [%s], got [%s]", expected, expect)
+
+	switch expected := expectedValue.(type) {
+	case string:
+		if got := gotValue.(string); got != expected {
+			t.Errorf("Expected [%s], got [%s]", expected, got)
+		}
+	case bool:
+		if got := gotValue.(bool); got != expected {
+			t.Errorf("Expected %v, got %v", expected, got)
+		}
+	case int:
+		if got := gotValue.(int); got != expected {
+			t.Errorf("Expected %d, got %d", expected, got)
+		}
+	default:
+		panic("invalid type value is passed")
 	}
-
-}
-
-func Expectt(t *testing.T, expected, expect bool) {
-	t.Helper()
-	if expected != expect {
-		t.Errorf("Expected [%v], got [%v].", expected, expect)
-	}
-
-}
-func Expecti(t *testing.T, expected, expect int) {
-	t.Helper()
-	if expected != expect {
-		t.Errorf("Expected %d, got %d.", expected, expect)
-	}
-
 }

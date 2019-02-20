@@ -36,7 +36,7 @@ func TestTokens(t *testing.T) {
 	expectToken(t, TInt, "", "FAIL", "")
 
 	tk, _ := TInt.match("10")
-	h.Expecti(t, 10, tk.Vali())
+	h.ExpectEq(t, 10, tk.Vali())
 
 	expectToken(t, TVar, "a", "a", "")
 	expectToken(t, TVar, "zA123%%", "zA123", "%%")
@@ -90,13 +90,13 @@ func TestHt(t *testing.T) {
 	tokens := Tokenize("+-")
 
 	head, tail := Ht(tokens)
-	h.Expects(t, "+", head.Val())
+	h.ExpectEq(t, "+", head.Val())
 
 	head, tail = Ht(tail)
-	h.Expects(t, "-", head.Val())
+	h.ExpectEq(t, "-", head.Val())
 
 	head, tail = Ht(tail)
-	h.Expects(t, "EOF", head.Val())
+	h.ExpectEq(t, "EOF", head.Val())
 
 	if len(tail) != 0 {
 		t.Errorf("Expected empty slice, got %v.", t)
@@ -108,10 +108,10 @@ func TestHt(t *testing.T) {
 func TestIs(t *testing.T) {
 	tokens := Tokenize("+-1")
 
-	h.Expectt(t, true, tokens[0].Is(&TPlus))
-	h.Expectt(t, false, tokens[0].Is(&TMinus))
-	h.Expectt(t, true, tokens[1].Is(&TMinus))
-	h.Expectt(t, true, tokens[2].Is(&TInt))
-	h.Expectt(t, true, tokens[3].Is(&TEOF))
+	h.ExpectEq(t, true, tokens[0].Is(&TPlus))
+	h.ExpectEq(t, false, tokens[0].Is(&TMinus))
+	h.ExpectEq(t, true, tokens[1].Is(&TMinus))
+	h.ExpectEq(t, true, tokens[2].Is(&TInt))
+	h.ExpectEq(t, true, tokens[3].Is(&TEOF))
 
 }
