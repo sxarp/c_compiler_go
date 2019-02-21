@@ -168,7 +168,7 @@ func Generator() psr.Parser {
 	muls = muldivs(&term)
 
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
-	term = term.Or(&parTerm).Or(&num)
+	term = term.Or(&num).Or(&parTerm)
 
 	expr := andId()
 	assign := assigner(&lvIdent, &expr)
