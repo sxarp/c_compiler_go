@@ -63,11 +63,41 @@ func (tt *TokenType) match(s string) (Token, string) {
 var TEOF TokenType = TokenType{literal: "EOF"}
 var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
+func tokenizeLine(tokens []Token, line string, row int,
+	tokenTypes []*TokenType, lineLen int) []Token {
+	skipToken := TokenType{regex: regexp.MustCompile(`^[\s]+`)}
+
+	for line != "" {
+		t := Fail
+		_, line = skipToken.match(line)
+
+		for _, tt := range tokenTypes {
+
+			col := lineLen - len(line)
+			if t, line = tt.match(line); t != Fail {
+				t.setRC(row, col)
+				break
+			}
+		}
+
+		if t == Fail {
+			errsl := 10
+			if len(line) < errsl {
+				errsl = len(line)
+
+			}
+			panic(fmt.Sprintf("Failed to tokenize:[%s].", line[:errsl]))
+		}
+
+		tokens = append(tokens, t)
+	}
+
+	return tokens
+}
+
 func tokenize(tokenTypes []*TokenType, lines string) []Token {
 	tokens := make([]Token, 0)
 	scanner := bufio.NewScanner(strings.NewReader(lines))
-
-	skipToken := TokenType{regex: regexp.MustCompile(`^[\s]+`)}
 
 	row := 0
 
@@ -75,31 +105,7 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 		row += 1
 		line := scanner.Text()
 		lineLen := len(line)
-
-		for line != "" {
-			t := Fail
-			_, line = skipToken.match(line)
-
-			for _, tt := range tokenTypes {
-
-				col := lineLen - len(line)
-				if t, line = tt.match(line); t != Fail {
-					t.setRC(row, col)
-					break
-				}
-			}
-
-			if t == Fail {
-				errsl := 10
-				if len(line) < errsl {
-					errsl = len(line)
-
-				}
-				panic(fmt.Sprintf("Failed to tokenize:[%s].", line[:errsl]))
-			}
-
-			tokens = append(tokens, t)
-		}
+		tokens = tokenizeLine(tokens, line, row, tokenTypes, lineLen)
 	}
 
 	return append(tokens, EOF)
