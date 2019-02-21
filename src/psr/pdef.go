@@ -12,10 +12,30 @@ var LPar *Parser = tokenTypeToPsr(&tok.TLPar)
 var RPar *Parser = tokenTypeToPsr(&tok.TRPar)
 var Mul *Parser = tokenTypeToPsr(&tok.TMul)
 var Div *Parser = tokenTypeToPsr(&tok.TDiv)
-var EOF *Parser = tokenTypeToPsr(&tok.TEOF)
 var Semi *Parser = tokenTypeToPsr(&tok.TSemi)
 var Subs *Parser = tokenTypeToPsr(&tok.TSubs)
 var Var *Parser = tokenTypeToPsr(&tok.TVar)
+
+// To show informative error messages.
+func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
+	return &Parser{Call: func(t []tok.Token) (ast.AST, []tok.Token) {
+
+		if len(t) == 0 {
+			return ast.Fail, t
+		}
+
+		head, tail := tok.Ht(t)
+
+		if head.Is(tt) {
+			return ast.AST{Token: &head}, tail
+
+		}
+
+		return ast.Fail, t
+	}}
+}
+
+var EOF *Parser = tokenTypeToPsrWOE(&tok.TEOF)
 
 func GenParser() Parser {
 	numv := OrId().Or(Int)

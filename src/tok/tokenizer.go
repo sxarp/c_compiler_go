@@ -17,8 +17,8 @@ type TokenType struct {
 type Token struct {
 	tt   *TokenType
 	valp *string
-	row  int
-	col  int
+	Row  int
+	Col  int
 }
 
 func (t *Token) Val() string { return *(t.valp) }
@@ -34,7 +34,7 @@ func (t *Token) Vali() int {
 
 func (t *Token) Is(tt *TokenType) bool { return t.tt == tt }
 
-func (t *Token) setRC(row, col int) { t.row, t.col = row, col }
+func (t *Token) setRC(row, col int) { t.Row, t.Col = row, col }
 
 var TFail TokenType = TokenType{literal: "FAIL"}
 var Fail Token = Token{tt: &TFail, valp: &(TFail.literal)}
@@ -58,6 +58,13 @@ func (tt *TokenType) match(s string) (Token, string) {
 	}
 
 	return Fail, s
+}
+
+func (tt *TokenType) Str() string {
+	if tt.regex != nil {
+		return tt.regex.String()
+	}
+	return tt.literal
 }
 
 var TEOF TokenType = TokenType{literal: "EOF"}

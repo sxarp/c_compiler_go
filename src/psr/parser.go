@@ -2,6 +2,7 @@ package psr
 
 import (
 	"github.com/sxarp/c_compiler_go/src/ast"
+	"github.com/sxarp/c_compiler_go/src/em"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
@@ -11,19 +12,23 @@ type Parser struct {
 
 func tokenTypeToPsr(tt *tok.TokenType) *Parser {
 	return &Parser{Call: func(t []tok.Token) (ast.AST, []tok.Token) {
+
 		if len(t) == 0 {
 			return ast.Fail, t
 		}
 
 		head, tail := tok.Ht(t)
+
 		if head.Is(tt) {
 			return ast.AST{Token: &head}, tail
 
 		}
 
+		// For displaying error messages.
+		em.EM.Set(tt, &head)
+
 		return ast.Fail, t
-	},
-	}
+	}}
 }
 
 func (p Parser) decorate(decorator func(ast.AST) ast.AST) Parser {

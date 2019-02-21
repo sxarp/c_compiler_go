@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
+	"github.com/sxarp/c_compiler_go/src/em"
 	"github.com/sxarp/c_compiler_go/src/gen"
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
@@ -22,7 +23,7 @@ func compile(tcode string) string {
 		ast.Eval(insts)
 
 	} else {
-		panic("Failed to parse!")
+		panic(em.EM.Message())
 	}
 
 	return asm.NewBuilder(insts).Main().Str()
