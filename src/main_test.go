@@ -111,15 +111,3 @@ lhs - rhs;
 `)
 
 }
-
-func TestPreprocess(t *testing.T) {
-	h.ExpectEq(t, preprocess(""), "")
-	h.ExpectEq(t, preprocess("3"), "3")
-	h.ExpectEq(t, preprocess("3 "), "3")
-	h.ExpectEq(t, preprocess(" 12 3"), "123")
-	h.ExpectEq(t, preprocess(`
-aaa
-bbb
-`), "aaabbb")
-
-}

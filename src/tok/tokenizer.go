@@ -1,9 +1,11 @@
 package tok
 
 import (
+	"bufio"
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type TokenType struct {
@@ -15,11 +17,11 @@ type TokenType struct {
 type Token struct {
 	tt   *TokenType
 	valp *string
+	Row  int
+	Col  int
 }
 
-func (t *Token) Val() string {
-	return *(t.valp)
-}
+func (t *Token) Val() string { return *(t.valp) }
 
 func (t *Token) Vali() int {
 	if t.tt.vali == nil {
@@ -30,9 +32,9 @@ func (t *Token) Vali() int {
 	return t.tt.vali(t.Val())
 }
 
-func (t *Token) Is(tt *TokenType) bool {
-	return t.tt == tt
-}
+func (t *Token) Is(tt *TokenType) bool { return t.tt == tt }
+
+func (t *Token) setRC(row, col int) { t.Row, t.Col = row, col }
 
 var TFail TokenType = TokenType{literal: "FAIL"}
 var Fail Token = Token{tt: &TFail, valp: &(TFail.literal)}
@@ -58,33 +60,59 @@ func (tt *TokenType) match(s string) (Token, string) {
 	return Fail, s
 }
 
+func (tt *TokenType) Str() string {
+	if tt.regex != nil {
+		return tt.regex.String()
+	}
+	return tt.literal
+}
+
 var TEOF TokenType = TokenType{literal: "EOF"}
 var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
-func tokenize(tokenTypes []*TokenType, s string) []Token {
-	tokens := make([]Token, 0)
+func tokenizeLine(tokens []Token, line string, row int,
+	tokenTypes []*TokenType, lineLen int) []Token {
+	skipToken := TokenType{regex: regexp.MustCompile(`^[\s]+`)}
 
-	for s != "" {
+	for line != "" {
 		t := Fail
+		_, line = skipToken.match(line)
 
 		for _, tt := range tokenTypes {
 
-			if t, s = tt.match(s); t != Fail {
+			col := lineLen - len(line)
+			if t, line = tt.match(line); t != Fail {
+				t.setRC(row, col)
 				break
-
 			}
 		}
 
 		if t == Fail {
 			errsl := 10
-			if len(s) < errsl {
-				errsl = len(s)
+			if len(line) < errsl {
+				errsl = len(line)
 
 			}
-			panic(fmt.Sprintf("Failed to tokenize:[%s].", s[:errsl]))
+			panic(fmt.Sprintf("Failed to tokenize:[%s].", line[:errsl]))
 		}
 
 		tokens = append(tokens, t)
+	}
+
+	return tokens
+}
+
+func tokenize(tokenTypes []*TokenType, lines string) []Token {
+	tokens := make([]Token, 0)
+	scanner := bufio.NewScanner(strings.NewReader(lines))
+
+	row := 0
+
+	for scanner.Scan() {
+		row += 1
+		line := scanner.Text()
+		lineLen := len(line)
+		tokens = tokenizeLine(tokens, line, row, tokenTypes, lineLen)
 	}
 
 	return append(tokens, EOF)
@@ -111,9 +139,7 @@ var TSemi TokenType = TokenType{literal: ";"}
 
 var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TVar, &TSemi}
 
-func Tokenize(s string) []Token {
-	return tokenize(TokenTypes, s)
-}
+func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 
 func Ht(ts []Token) (Token, []Token) {
 	if len(ts) == 0 {
