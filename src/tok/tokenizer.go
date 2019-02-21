@@ -67,11 +67,14 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 	tokens := make([]Token, 0)
 	scanner := bufio.NewScanner(strings.NewReader(lines))
 
+	skipToken := TokenType{regex: regexp.MustCompile(`^[\s]+`)}
+
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		for line != "" {
 			t := Fail
+			_, line = skipToken.match(line)
 
 			for _, tt := range tokenTypes {
 

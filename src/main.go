@@ -14,24 +14,8 @@ func main() {
 	fmt.Println(asm)
 }
 
-func preprocess(s string) string {
-	rets := ""
-
-	for _, c := range s {
-		if c == ' ' {
-			continue
-		}
-
-		rets = rets + string(c)
-
-	}
-	return rets
-
-}
-
 func compile(tcode string) string {
-	pcode := preprocess(tcode)
-	tokens := tok.Tokenize(pcode)
+	tokens := tok.Tokenize(tcode)
 
 	insts := asm.New()
 	if ast, rem := gen.Generator().Call(tokens); len(rem) == 0 {
