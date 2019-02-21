@@ -17,11 +17,11 @@ type TokenType struct {
 type Token struct {
 	tt   *TokenType
 	valp *string
+	row  int
+	col  int
 }
 
-func (t *Token) Val() string {
-	return *(t.valp)
-}
+func (t *Token) Val() string { return *(t.valp) }
 
 func (t *Token) Vali() int {
 	if t.tt.vali == nil {
@@ -32,9 +32,9 @@ func (t *Token) Vali() int {
 	return t.tt.vali(t.Val())
 }
 
-func (t *Token) Is(tt *TokenType) bool {
-	return t.tt == tt
-}
+func (t *Token) Is(tt *TokenType) bool { return t.tt == tt }
+
+func (t *Token) setRC(row, col int) { t.row, t.col = row, col }
 
 var TFail TokenType = TokenType{literal: "FAIL"}
 var Fail Token = Token{tt: &TFail, valp: &(TFail.literal)}
@@ -69,8 +69,12 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 
 	skipToken := TokenType{regex: regexp.MustCompile(`^[\s]+`)}
 
+	row := 0
+
 	for scanner.Scan() {
+		row += 1
 		line := scanner.Text()
+		lineLen := len(line)
 
 		for line != "" {
 			t := Fail
@@ -78,9 +82,10 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 
 			for _, tt := range tokenTypes {
 
+				col := lineLen - len(line)
 				if t, line = tt.match(line); t != Fail {
+					t.setRC(row, col)
 					break
-
 				}
 			}
 
@@ -121,9 +126,7 @@ var TSemi TokenType = TokenType{literal: ";"}
 
 var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TVar, &TSemi}
 
-func Tokenize(s string) []Token {
-	return tokenize(TokenTypes, s)
-}
+func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 
 func Ht(ts []Token) (Token, []Token) {
 	if len(ts) == 0 {

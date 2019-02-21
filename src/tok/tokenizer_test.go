@@ -84,6 +84,18 @@ func TestTokenizer(t *testing.T) {
 	expectTokens(t, Tokenize, "+23-11", []string{"+", "23", "-", "11", "EOF"})
 	expectTokens(t, Tokenize, "a+b=", []string{"a", "+", "b", "=", "EOF"})
 	expectTokens(t, Tokenize, "a+b=;", []string{"a", "+", "b", "=", ";", "EOF"})
+
+	tokens := Tokenize(`abc 123
+12 abc
+`)
+	rc := []struct {
+		r int
+		c int
+	}{{1, 0}, {1, 4}, {2, 0}, {2, 3}}
+	for i, token := range tokens[:len(tokens)-1] {
+		h.ExpectEq(t, rc[i].r, token.row)
+		h.ExpectEq(t, rc[i].c, token.col)
+	}
 }
 
 func TestHt(t *testing.T) {
