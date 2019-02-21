@@ -1,9 +1,11 @@
 package tok
 
 import (
+	"bufio"
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type TokenType struct {
@@ -61,30 +63,35 @@ func (tt *TokenType) match(s string) (Token, string) {
 var TEOF TokenType = TokenType{literal: "EOF"}
 var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
-func tokenize(tokenTypes []*TokenType, s string) []Token {
+func tokenize(tokenTypes []*TokenType, lines string) []Token {
 	tokens := make([]Token, 0)
+	scanner := bufio.NewScanner(strings.NewReader(lines))
 
-	for s != "" {
-		t := Fail
+	for scanner.Scan() {
+		line := scanner.Text()
 
-		for _, tt := range tokenTypes {
+		for line != "" {
+			t := Fail
 
-			if t, s = tt.match(s); t != Fail {
-				break
+			for _, tt := range tokenTypes {
 
+				if t, line = tt.match(line); t != Fail {
+					break
+
+				}
 			}
-		}
 
-		if t == Fail {
-			errsl := 10
-			if len(s) < errsl {
-				errsl = len(s)
+			if t == Fail {
+				errsl := 10
+				if len(line) < errsl {
+					errsl = len(line)
 
+				}
+				panic(fmt.Sprintf("Failed to tokenize:[%s].", line[:errsl]))
 			}
-			panic(fmt.Sprintf("Failed to tokenize:[%s].", s[:errsl]))
-		}
 
-		tokens = append(tokens, t)
+			tokens = append(tokens, t)
+		}
 	}
 
 	return append(tokens, EOF)
