@@ -10,22 +10,41 @@ import (
 )
 
 type psrTestCase struct {
-	rcode string
-	ins   []asm.Fin
-	tf    bool
+	rcode    string
+	ins      []asm.Fin
+	tf       bool
+	expected string
 }
 
 func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	t.Helper()
 	lhs := asm.New()
+	var finalInst asm.Fin
 	for _, i := range c.ins {
 		lhs.Ins(i)
+		finalInst = i
 	}
 
 	rhs := asm.New()
 	a, _ := p.Call(tok.Tokenize(c.rcode))
 	a.Eval(rhs)
 	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
+
+	if c.expected != "" {
+		ret := asm.I().Ret()
+		if !finalInst.Eq(&ret) {
+			rhs.Ins(asm.I().Pop().Rax()).Ins(asm.I().Ret())
+		}
+		execInstComp(t, c.expected, rhs)
+	}
+}
+
+func execInstComp(t *testing.T, expected string, insts *asm.Insts) {
+	t.Helper()
+	if gotValue := h.ExecCode(t, asm.NewBuilder(insts).Main().Str(),
+		"../../tmp", "insts"); gotValue != expected {
+		t.Errorf("Expected %s, got %s.", expected, gotValue)
+	}
 }
 
 func TestNunInt(t *testing.T) {
@@ -36,12 +55,14 @@ func TestNunInt(t *testing.T) {
 			"42",
 			[]asm.Fin{asm.I().Push().Val(42)},
 			true,
+			"42",
 		},
 		{
 
 			"43",
 			[]asm.Fin{asm.I().Push().Val(42)},
 			false,
+			"43",
 		},
 	} {
 		compCode(t, numInt, c)
@@ -62,6 +83,7 @@ func TestAdder(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, adder(&numInt), c)
@@ -82,6 +104,7 @@ func TestSubber(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, subber(&numInt), c)
@@ -103,6 +126,7 @@ func TestAddsubs(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"2",
 		},
 	} {
 		compCode(t, addsubs(&numInt), c)
@@ -123,6 +147,7 @@ func TestMuler(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, muler(&numInt), c)
@@ -144,6 +169,7 @@ func TestDiver(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, diver(&numInt), c)
@@ -165,6 +191,7 @@ func TestMuldivs(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"2",
 		},
 	} {
 		compCode(t, muldivs(&numInt), c)
@@ -183,6 +210,7 @@ func TestProloguer(t *testing.T) {
 				asm.I().Sub().Rsp().Val(16),
 			},
 			true,
+			"",
 		},
 	} {
 		st := newST()
@@ -203,6 +231,7 @@ func TestEpilogue(t *testing.T) {
 				asm.I().Ret(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, epilogue, c)
@@ -218,6 +247,7 @@ func TestPopRax(t *testing.T) {
 				asm.I().Pop().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, popRax, c)
@@ -240,6 +270,7 @@ func TestFuncWrapper(t *testing.T) {
 				asm.I().Ret(),
 			},
 			true,
+			"",
 		},
 	} {
 		st := newST()
@@ -261,6 +292,7 @@ func TestLvIdenter(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 
 		{
@@ -272,6 +304,7 @@ func TestLvIdenter(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, lvIdenter(newST()), c)
@@ -293,6 +326,7 @@ func TestRvIdent(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		lvIdent := lvIdenter(newST())
@@ -315,6 +349,7 @@ func TestAssigner(t *testing.T) {
 				asm.I().Push().Rax(),
 			},
 			true,
+			"",
 		},
 	} {
 		compCode(t, assigner(&numInt, &numInt), c)
@@ -349,6 +384,7 @@ func TestGenerator(t *testing.T) {
 				asm.I().Pop().Rax(),
 			}),
 			true,
+			"1",
 		},
 		{
 
@@ -363,6 +399,7 @@ func TestGenerator(t *testing.T) {
 				asm.I().Pop().Rax(),
 			}),
 			true,
+			"2",
 		},
 		{
 
@@ -377,6 +414,7 @@ func TestGenerator(t *testing.T) {
 				asm.I().Pop().Rax(),
 			}),
 			true,
+			"3",
 		},
 		{
 
@@ -391,6 +429,7 @@ func TestGenerator(t *testing.T) {
 				asm.I().Pop().Rax(),
 			}),
 			true,
+			"255",
 		},
 	} {
 		compCode(t, Generator(), c)

@@ -1,45 +1,14 @@
 package main
 
 import (
-	"io/ioutil"
-	"os/exec"
-	"regexp"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
 )
 
-func execCode(t *testing.T, code string) string {
-	t.Helper()
-
-	b := []byte(code)
-
-	if err := ioutil.WriteFile("../tmp/src.s", b, 0644); err != nil {
-		t.Errorf("Failed to put asm file.")
-	}
-
-	if err := exec.Command("gcc", "-o", "../tmp/tmp", "../tmp/src.s").Run(); err != nil {
-		t.Errorf("Failed to comple: %s", err)
-	}
-
-	err := exec.Command("../tmp/tmp").Run()
-
-	// Run returns nil when exit code is 0.
-	if err == nil {
-		return "0"
-
-	}
-
-	re := regexp.MustCompile("[0-9]+")
-	res := re.FindString(err.Error())
-
-	return res
-}
-
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
-	h.ExpectEq(t, expected, execCode(t, compile(code)))
-
+	h.ExpectEq(t, expected, h.ExecCode(t, compile(code), "../tmp", "src"))
 }
 
 func TestComp(t *testing.T) {
