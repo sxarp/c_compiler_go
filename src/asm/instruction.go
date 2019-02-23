@@ -19,6 +19,7 @@ func Rdi() Reg { return Reg{r: "rdi"} }
 func Rdx() Reg { return Reg{r: "rdx"} }
 func Rbp() Reg { return Reg{r: "rbp"} }
 func Rsp() Reg { return Reg{r: "rsp"} }
+func Al() Reg  { return Reg{r: "al"} }
 
 type Ope struct {
 	i string
@@ -27,14 +28,18 @@ type Ope struct {
 func (i Ope) str() string { return i.i }
 
 // Operators
-func OMov() Ope  { return Ope{i: "mov"} }
-func OAdd() Ope  { return Ope{i: "add"} }
-func OSub() Ope  { return Ope{i: "sub"} }
-func ORet() Ope  { return Ope{i: "ret"} }
-func OPop() Ope  { return Ope{i: "pop"} }
-func OPush() Ope { return Ope{i: "push"} }
-func OMul() Ope  { return Ope{i: "mul"} }
-func ODiv() Ope  { return Ope{i: "div"} }
+func OMov() Ope   { return Ope{i: "mov"} }
+func OAdd() Ope   { return Ope{i: "add"} }
+func OSub() Ope   { return Ope{i: "sub"} }
+func ORet() Ope   { return Ope{i: "ret"} }
+func OPop() Ope   { return Ope{i: "pop"} }
+func OPush() Ope  { return Ope{i: "push"} }
+func OMul() Ope   { return Ope{i: "mul"} }
+func ODiv() Ope   { return Ope{i: "div"} }
+func OCmp() Ope   { return Ope{i: "cmp"} }
+func OSete() Ope  { return Ope{i: "sete"} }
+func OSetne() Ope { return Ope{i: "setne"} }
+func OMovzb() Ope { return Ope{i: "movzb"} }
 
 type Ins struct {
 	ope  Ope
@@ -53,7 +58,17 @@ func (i Ins) str() string {
 	sb.Put("        ")
 	sb.Put(i.ope.str())
 
-	if i.ope == OPop() || i.ope == OPush() || i.ope == OMul() || i.ope == ODiv() {
+	includeOpe := func(o Ope) bool {
+		retv := false
+		for _, op := range []func() Ope{OPop, OPush, OMul, ODiv, OSete, OSetne} {
+			if o == op() {
+				retv = true
+			}
+		}
+		return retv
+	}
+
+	if includeOpe(i.ope) {
 		sb.Put(" ")
 		if !i.srcR.nil() {
 			sb.Put(i.srcR.str())
@@ -138,14 +153,18 @@ func toDested(i Ins, o func() Reg) Dested {
 	return Dested{i: i}
 }
 
-func (i Ini) Mov() Oped { return toOped(i.i, OMov) }
-func (i Ini) Add() Oped { return toOped(i.i, OAdd) }
-func (i Ini) Sub() Oped { return toOped(i.i, OSub) }
+func (i Ini) Mov() Oped   { return toOped(i.i, OMov) }
+func (i Ini) Add() Oped   { return toOped(i.i, OAdd) }
+func (i Ini) Sub() Oped   { return toOped(i.i, OSub) }
+func (i Ini) Cmp() Oped   { return toOped(i.i, OCmp) }
+func (i Ini) Movzb() Oped { return toOped(i.i, OMovzb) }
 
-func (i Ini) Pop() Dested  { return opeDested(i.i, OPop) }
-func (i Ini) Push() Dested { return opeDested(i.i, OPush) }
-func (i Ini) Mul() Dested  { return opeDested(i.i, OMul) }
-func (i Ini) Div() Dested  { return opeDested(i.i, ODiv) }
+func (i Ini) Pop() Dested   { return opeDested(i.i, OPop) }
+func (i Ini) Push() Dested  { return opeDested(i.i, OPush) }
+func (i Ini) Mul() Dested   { return opeDested(i.i, OMul) }
+func (i Ini) Div() Dested   { return opeDested(i.i, ODiv) }
+func (i Ini) Sete() Dested  { return opeDested(i.i, OSete) }
+func (i Ini) Setne() Dested { return opeDested(i.i, OSetne) }
 
 func (i Dested) P() Dested {
 	i.i.destP = true
@@ -157,6 +176,7 @@ func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
 func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
 func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
 func (i Oped) Rdi() Dested { return toDested(i.i, Rdi) }
+func (i Oped) Al() Dested  { return toDested(i.i, Al) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
@@ -167,6 +187,7 @@ func (i Dested) Rax() Fin { return regFin(i.i, Rax) }
 func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
 func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
 func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
+func (i Dested) Al() Fin  { return regFin(i.i, Al) }
 
 func (i Fin) P() Fin {
 	i.i.srcP = true
