@@ -154,6 +154,12 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 		})
 }
 
+func returner(term *psr.Parser) psr.Parser {
+	retval := andId().And(term, true).And(&popRax, true)
+	ret := orId().Or(&retval).Or(&null)
+	return andId().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
+}
+
 func funcCaller(term *psr.Parser) psr.Parser {
 	funcName := andId().And(psr.Var, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })

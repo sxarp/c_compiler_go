@@ -443,6 +443,37 @@ func TestNeqer(t *testing.T) {
 
 }
 
+func TestReturner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"return",
+			[]asm.Fin{
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"",
+		},
+
+		{
+			"return 1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, returner(&numInt), c)
+	}
+}
+
 func TestFuncCaller(t *testing.T) {
 
 	for _, c := range []psrTestCase{
