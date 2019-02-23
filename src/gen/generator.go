@@ -72,6 +72,20 @@ func muldivs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
 }
 
+func eqer(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Eq, []asm.Fin{
+		asm.I().Cmp().Rdi().Rax(),
+		asm.I().Sete().Al(),
+		asm.I().Movzb().Rax().Al()})
+}
+
+func neqer(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Neq, []asm.Fin{
+		asm.I().Cmp().Rdi().Rax(),
+		asm.I().Setne().Al(),
+		asm.I().Movzb().Rax().Al()})
+}
+
 func prologuer(st *SymTable) psr.Parser {
 	return andId().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.

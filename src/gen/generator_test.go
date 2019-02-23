@@ -357,6 +357,88 @@ func TestAssigner(t *testing.T) {
 
 }
 
+func TestEqer(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"2==1",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rdi().Rax(),
+				asm.I().Sete().Al(),
+				asm.I().Movzb().Rax().Al(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"0",
+		},
+		{
+			"2==2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rdi().Rax(),
+				asm.I().Sete().Al(),
+				asm.I().Movzb().Rax().Al(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"1",
+		},
+	} {
+		eq := eqer(&numInt)
+		psr := andId().And(&numInt, true).And(&eq, true)
+		compCode(t, psr, c)
+	}
+
+}
+
+func TestNeqer(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"2!=1",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rdi().Rax(),
+				asm.I().Setne().Al(),
+				asm.I().Movzb().Rax().Al(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"1",
+		},
+		{
+			"2!=2",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rdi().Rax(),
+				asm.I().Setne().Al(),
+				asm.I().Movzb().Rax().Al(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"0",
+		},
+	} {
+		neq := neqer(&numInt)
+		psr := andId().And(&numInt, true).And(&neq, true)
+		compCode(t, psr, c)
+	}
+
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{
