@@ -136,8 +136,10 @@ var TMul TokenType = TokenType{literal: "*"}
 var TDiv TokenType = TokenType{literal: "/"}
 var TSubs TokenType = TokenType{literal: "="}
 var TSemi TokenType = TokenType{literal: ";"}
+var TEq TokenType = TokenType{literal: "=="}
+var TNeq TokenType = TokenType{literal: "!="}
 
-var TokenTypes = []*TokenType{&TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TVar, &TSemi}
+var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar, &TMul, &TDiv, &TVar, &TSemi}
 
 func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 
