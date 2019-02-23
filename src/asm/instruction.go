@@ -137,14 +137,12 @@ func I() Ini { return Ini{i: Ins{}} }
 func (i Ini) Ret() Fin {
 	i.i.ope = ORet()
 	return Fin{i: i.i}
-
 }
 
 func (i Ini) Call(name string) Fin {
 	i.i.ope = Ope{i: "call"}
 	i.i.toS = func() string { return name }
 	return Fin{i: i.i}
-
 }
 
 func toOped(i Ins, o func() Ope) Oped {
