@@ -10,6 +10,7 @@ import (
 
 var orId = psr.OrId
 var andId = psr.AndId
+var null = andId()
 
 const wordSize = 8
 
@@ -150,6 +151,45 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 				Ins(asm.I().Mov().Rdi().P().Rax()). // mv rax to [lv]
 				Ins(asm.I().Push().Rax())
 
+		})
+}
+
+func funcCaller(term *psr.Parser) psr.Parser {
+	funcName := andId().And(psr.Var, true).
+		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
+
+	commed := andId().And(psr.Com, false).And(term, true).Trans(ast.PopSingle)
+	argvs := andId().And(term, true).Rep(&commed).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		if len(nodes) > 6 {
+			panic("too many arguments")
+		}
+
+		// Evaluate args from right to left and push into the stack.
+		for i := range nodes {
+			nodes[len(nodes)-i-1].Eval(code)
+		}
+
+		argsRegs := []asm.Fin{
+			asm.I().Mov().Rdi().Rax(),
+			asm.I().Mov().Rsi().Rax(),
+			asm.I().Mov().Rdx().Rax(),
+			asm.I().Mov().Rcx().Rax(),
+			asm.I().Mov().R8().Rax(),
+			asm.I().Mov().R9().Rax(),
+		}
+
+		for i := range nodes {
+			code.Ins(asm.I().Pop().Rax()).Ins(argsRegs[i])
+		}
+	})
+
+	args := orId().Or(&argvs).Or(&null)
+
+	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[1].Eval(code)
+			nodes[0].Eval(code)
 		})
 }
 

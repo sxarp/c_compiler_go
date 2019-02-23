@@ -26,7 +26,11 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	}
 
 	rhs := asm.New()
-	a, _ := p.Call(tok.Tokenize(c.rcode))
+	a, rem := p.Call(tok.Tokenize(c.rcode))
+	if len(rem) > 1 {
+		t.Errorf("failed to parse")
+	}
+
 	a.Eval(rhs)
 	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
 
@@ -435,6 +439,75 @@ func TestNeqer(t *testing.T) {
 		neq := neqer(&numInt)
 		psr := andId().And(&numInt, true).And(&neq, true)
 		compCode(t, psr, c)
+	}
+
+}
+
+func TestFuncCaller(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"hoge()",
+			[]asm.Fin{
+				asm.I().Call("hoge"),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(1)",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Call("hoge"),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(1, 2)",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsi().Rax(),
+				asm.I().Call("hoge"),
+			},
+			true,
+			"",
+		},
+
+		{
+			"hoge(1, 2, 3, 4, 5, 6)",
+			[]asm.Fin{
+				asm.I().Push().Val(6),
+				asm.I().Push().Val(5),
+				asm.I().Push().Val(4),
+				asm.I().Push().Val(3),
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdx().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rcx().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().R8().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().R9().Rax(),
+				asm.I().Call("hoge"),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, funcCaller(&numInt), c)
 	}
 
 }
