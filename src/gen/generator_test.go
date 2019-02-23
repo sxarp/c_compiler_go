@@ -481,6 +481,7 @@ func TestFuncCaller(t *testing.T) {
 			"hoge()",
 			[]asm.Fin{
 				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
 			},
 			true,
 			"",
@@ -492,6 +493,7 @@ func TestFuncCaller(t *testing.T) {
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rdi().Rax(),
 				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
 			},
 			true,
 			"",
@@ -506,11 +508,11 @@ func TestFuncCaller(t *testing.T) {
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rsi().Rax(),
 				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
 			},
 			true,
 			"",
 		},
-
 		{
 			"hoge(1, 2, 3, 4, 5, 6)",
 			[]asm.Fin{
@@ -533,6 +535,7 @@ func TestFuncCaller(t *testing.T) {
 				asm.I().Pop().Rax(),
 				asm.I().Mov().R9().Rax(),
 				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
 			},
 			true,
 			"",

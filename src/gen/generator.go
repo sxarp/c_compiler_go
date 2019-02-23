@@ -196,6 +196,7 @@ func funcCaller(term *psr.Parser) psr.Parser {
 			checkNodeCount(nodes, 2)
 			nodes[1].Eval(code)
 			nodes[0].Eval(code)
+			code.Ins(asm.I().Push().Rax())
 		})
 }
 
