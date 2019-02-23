@@ -238,8 +238,13 @@ func Generator() psr.Parser {
 
 	assign := assigner(&lvIdent, &expr)
 	expr = orId().Or(&assign).Or(&eqs)
+	semi := andId().And(&expr, true).And(psr.Semi, false)
 
-	line := andId().And(&expr, true).And(psr.Semi, false).And(&popRax, true)
-	lines := andId().Rep(&line)
-	return funcWrapper(&lines, st).And(psr.EOF, false)
+	line := andId().And(&semi, true).And(&popRax, true)
+	ret := returner(&semi)
+
+	retLine := orId().Or(&ret).Or(&line)
+	retLines := andId().Rep(&retLine)
+
+	return funcWrapper(&retLines, st).And(psr.EOF, false)
 }

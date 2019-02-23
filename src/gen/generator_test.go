@@ -617,6 +617,29 @@ func TestGenerator(t *testing.T) {
 			true,
 			"255",
 		},
+
+		{
+			"return",
+			wrapInsts([]asm.Fin{
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			}),
+			true,
+			"",
+		},
+		{
+			"return 1;",
+			wrapInsts([]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			}),
+			true,
+			"1",
+		},
 	} {
 		compCode(t, Generator(), c)
 	}

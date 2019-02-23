@@ -61,6 +61,8 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "1", "a = b = 1;a != b + 1 == 1;")
 	compare(t, "1", "a = b = 1;a != b == 0;")
 
+	compare(t, "6", "a=5;return (1+a);10;")
+
 	// Only 8bits are available for the parent processes, then exit codes are in 0 ~ 255.
 	// https://unix.stackexchange.com/questions/418784/what-is-the-min-and-max-values-of-exit-codes-in-linux
 	compare(t, "249", "1 - 2 + 3 -4 + 5 - 10;")
