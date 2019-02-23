@@ -39,13 +39,21 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 		if !finalInst.Eq(&ret) {
 			rhs.Ins(asm.I().Pop().Rax()).Ins(asm.I().Ret())
 		}
+
+		ml := asm.I().Label("main")
+		if !c.ins[0].Eq(&ml) {
+			rrhs := asm.New()
+			rrhs.Ins(asm.I().Label("main"))
+			rrhs.Concat(rhs)
+			rhs = rrhs
+		}
 		execInstComp(t, c.expected, rhs)
 	}
 }
 
 func execInstComp(t *testing.T, expected string, insts *asm.Insts) {
 	t.Helper()
-	if gotValue := h.ExecCode(t, asm.NewBuilder(insts).Main().Str(),
+	if gotValue := h.ExecCode(t, asm.NewBuilder(insts).Str(),
 		"../../tmp", "insts"); gotValue != expected {
 		t.Errorf("Expected %s, got %s.", expected, gotValue)
 	}
@@ -265,6 +273,7 @@ func TestFuncWrapper(t *testing.T) {
 
 			"1",
 			[]asm.Fin{
+				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
 				asm.I().Sub().Rsp().Val(wordSize * 2),
@@ -549,6 +558,7 @@ func TestFuncCaller(t *testing.T) {
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{
+			asm.I().Label("main"),
 			asm.I().Push().Rbp(),
 			asm.I().Mov().Rbp().Rsp(),
 			asm.I().Sub().Rsp().Val(wordSize * 0),

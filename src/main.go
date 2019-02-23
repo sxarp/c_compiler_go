@@ -26,5 +26,5 @@ func compile(tcode string) string {
 		panic(em.EM.Message())
 	}
 
-	return asm.NewBuilder(insts).Main().Str()
+	return asm.NewBuilder(insts).Str()
 }

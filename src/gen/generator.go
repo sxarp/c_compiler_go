@@ -207,6 +207,7 @@ func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
 			checkNodeCount(nodes, 3)
 
 			insts := code.(*asm.Insts)
+			insts.Ins(asm.I().Label("main"))
 
 			bottom := asm.New()
 			nodes[1].Eval(bottom)

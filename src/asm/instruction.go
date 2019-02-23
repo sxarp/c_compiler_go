@@ -54,11 +54,17 @@ type Ins struct {
 	destP bool
 	srcP  bool
 
-	toS func() string
+	toS   func() string
+	label string
 }
 
 func (i Ins) str() string {
 	sb := str.Builder{}
+
+	if i.label != "" {
+		sb.Put(i.label + ":")
+		return sb.Str()
+	}
 
 	sb.Put("        ")
 	sb.Put(i.ope.str())
@@ -146,6 +152,11 @@ func (i Ini) Ret() Fin {
 func (i Ini) Call(name string) Fin {
 	i.i.ope = Ope{i: "call"}
 	i.i.toS = func() string { return name }
+	return Fin{i: i.i}
+}
+
+func (i Ini) Label(name string) Fin {
+	i.i.label = name
 	return Fin{i: i.i}
 }
 
