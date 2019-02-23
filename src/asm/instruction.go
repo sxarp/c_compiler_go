@@ -20,6 +20,10 @@ func Rdx() Reg { return Reg{r: "rdx"} }
 func Rbp() Reg { return Reg{r: "rbp"} }
 func Rsp() Reg { return Reg{r: "rsp"} }
 func Al() Reg  { return Reg{r: "al"} }
+func Rsi() Reg { return Reg{r: "rsi"} }
+func Rcx() Reg { return Reg{r: "rcx"} }
+func R8() Reg  { return Reg{r: "r8"} }
+func R9() Reg  { return Reg{r: "r9"} }
 
 type Ope struct {
 	i string
@@ -189,6 +193,10 @@ func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
 func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
 func (i Oped) Rdi() Dested { return toDested(i.i, Rdi) }
 func (i Oped) Al() Dested  { return toDested(i.i, Al) }
+func (i Oped) Rsi() Dested { return toDested(i.i, Rsi) }
+func (i Oped) Rcx() Dested { return toDested(i.i, Rcx) }
+func (i Oped) R8() Dested  { return toDested(i.i, R8) }
+func (i Oped) R9() Dested  { return toDested(i.i, R9) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
@@ -200,6 +208,10 @@ func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
 func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
 func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
 func (i Dested) Al() Fin  { return regFin(i.i, Al) }
+func (i Dested) Rsi() Fin { return regFin(i.i, Rsi) }
+func (i Dested) Rcx() Fin { return regFin(i.i, Rcx) }
+func (i Dested) R8() Fin  { return regFin(i.i, R8) }
+func (i Dested) R9() Fin  { return regFin(i.i, R9) }
 
 func (i Fin) P() Fin {
 	i.i.srcP = true
