@@ -1,45 +1,14 @@
 package main
 
 import (
-	"io/ioutil"
-	"os/exec"
-	"regexp"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
 )
 
-func execCode(t *testing.T, code string) string {
-	t.Helper()
-
-	b := []byte(code)
-
-	if err := ioutil.WriteFile("../tmp/src.s", b, 0644); err != nil {
-		t.Errorf("Failed to put asm file.")
-	}
-
-	if err := exec.Command("gcc", "-o", "../tmp/tmp", "../tmp/src.s").Run(); err != nil {
-		t.Errorf("Failed to comple: %s", err)
-	}
-
-	err := exec.Command("../tmp/tmp").Run()
-
-	// Run returns nil when exit code is 0.
-	if err == nil {
-		return "0"
-
-	}
-
-	re := regexp.MustCompile("[0-9]+")
-	res := re.FindString(err.Error())
-
-	return res
-}
-
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
-	h.ExpectEq(t, expected, execCode(t, compile(code)))
-
+	h.ExpectEq(t, expected, h.ExecCode(t, compile(code), "../tmp", "src"))
 }
 
 func TestComp(t *testing.T) {
@@ -86,6 +55,11 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "24", "a = 1; b = a+1; c = b+1; 8*c;")
 
 	compare(t, "2", "a = b = c = 1+1;")
+
+	compare(t, "1", "a = b = 1;a == b == 1;")
+	compare(t, "1", "a = b = 1;a == b + 1 == 0;")
+	compare(t, "1", "a = b = 1;a != b + 1 == 1;")
+	compare(t, "1", "a = b = 1;a != b == 0;")
 
 	// Only 8bits are available for the parent processes, then exit codes are in 0 ~ 255.
 	// https://unix.stackexchange.com/questions/418784/what-is-the-min-and-max-values-of-exit-codes-in-linux

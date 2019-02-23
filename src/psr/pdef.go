@@ -15,6 +15,8 @@ var Div *Parser = tokenTypeToPsr(&tok.TDiv)
 var Semi *Parser = tokenTypeToPsr(&tok.TSemi)
 var Subs *Parser = tokenTypeToPsr(&tok.TSubs)
 var Var *Parser = tokenTypeToPsr(&tok.TVar)
+var Eq *Parser = tokenTypeToPsr(&tok.TEq)
+var Neq *Parser = tokenTypeToPsr(&tok.TNeq)
 
 // To show informative error messages.
 func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {

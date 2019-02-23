@@ -26,6 +26,10 @@ func TestIns(t *testing.T) {
 	h.ExpectEq(t, "        mov [rsp], rbp", I().Mov().Rsp().P().Rbp().str())
 	h.ExpectEq(t, "        mov rsp, [rbp]", I().Mov().Rsp().Rbp().P().str())
 	h.ExpectEq(t, "        mov [rdi], rax", I().Mov().Rdi().P().Rax().str())
+	h.ExpectEq(t, "        cmp rdi, rax", I().Cmp().Rdi().Rax().str())
+	h.ExpectEq(t, "        sete al", I().Sete().Al().str())
+	h.ExpectEq(t, "        setne al", I().Setne().Al().str())
+	h.ExpectEq(t, "        movzb rax, al", I().Movzb().Rax().Al().str())
 }
 
 func TestFinEq(t *testing.T) {

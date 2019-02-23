@@ -72,6 +72,26 @@ func muldivs(term *psr.Parser) psr.Parser {
 	return andId().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
 }
 
+func eqer(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Eq, []asm.Fin{
+		asm.I().Cmp().Rdi().Rax(),
+		asm.I().Sete().Al(),
+		asm.I().Movzb().Rax().Al()})
+}
+
+func neqer(term *psr.Parser) psr.Parser {
+	return binaryOperator(term, psr.Neq, []asm.Fin{
+		asm.I().Cmp().Rdi().Rax(),
+		asm.I().Setne().Al(),
+		asm.I().Movzb().Rax().Al()})
+}
+
+func eqneqs(term *psr.Parser) psr.Parser {
+	eq, neq := eqer(term), neqer(term)
+	eqneq := orId().Or(&eq).Or(&neq)
+	return andId().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
+}
+
 func prologuer(st *SymTable) psr.Parser {
 	return andId().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.
@@ -161,18 +181,17 @@ func Generator() psr.Parser {
 
 	num := orId().Or(&numInt).Or(&rvIdent)
 
-	term := orId()
-	muls := andId()
+	var term, muls, adds, expr, eqs psr.Parser
 
-	adds := addsubs(&muls)
+	eqs = eqneqs(&adds)
+	adds = addsubs(&muls)
 	muls = muldivs(&term)
 
 	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
-	term = term.Or(&num).Or(&parTerm)
+	term = orId().Or(&num).Or(&parTerm)
 
-	expr := andId()
 	assign := assigner(&lvIdent, &expr)
-	expr = orId().Or(&assign).Or(&adds)
+	expr = orId().Or(&assign).Or(&eqs)
 
 	line := andId().And(&expr, true).And(psr.Semi, false).And(&popRax, true)
 	lines := andId().Rep(&line)
