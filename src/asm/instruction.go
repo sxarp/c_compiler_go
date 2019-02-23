@@ -49,14 +49,21 @@ type Ins struct {
 
 	destP bool
 	srcP  bool
+
+	toS func() string
 }
 
 func (i Ins) str() string {
-
 	sb := str.Builder{}
 
 	sb.Put("        ")
 	sb.Put(i.ope.str())
+
+	if i.toS != nil {
+		sb.Put(" ")
+		sb.Put(i.toS())
+		return sb.Str()
+	}
 
 	includeOpe := func(o Ope) bool {
 		retv := false
@@ -129,6 +136,13 @@ func I() Ini { return Ini{i: Ins{}} }
 
 func (i Ini) Ret() Fin {
 	i.i.ope = ORet()
+	return Fin{i: i.i}
+
+}
+
+func (i Ini) Call(name string) Fin {
+	i.i.ope = Ope{i: "call"}
+	i.i.toS = func() string { return name }
 	return Fin{i: i.i}
 
 }
