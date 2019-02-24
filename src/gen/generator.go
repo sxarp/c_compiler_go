@@ -160,6 +160,8 @@ func returner(term *psr.Parser) psr.Parser {
 	return andId().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
 }
 
+var ifcount int
+
 func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
 	return andId().And(psr.If, false).And(psr.LPar, false).And(condition, true).And(psr.RPar, false).
 		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
@@ -167,14 +169,15 @@ func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(code)
 
-			lend := ".Lend"
+			label := fmt.Sprintf("iflabel_%d", ifcount)
 			code.
 				Ins(asm.I().Pop().Rax()).
 				Ins(asm.I().Cmp().Rax().Val(0)).
-				Ins(asm.I().Je(lend))
+				Ins(asm.I().Je(label))
 
 			nodes[1].Eval(code)
-			code.Ins(asm.I().Label(lend))
+			code.Ins(asm.I().Label(label))
+			ifcount += 1
 		})
 }
 
@@ -281,8 +284,8 @@ func Generator() psr.Parser {
 		lvIdent := lvIdenter(st)
 		rvIdent := rvIdenter(&lvIdent)
 
-		var term, muls, adds, expr, eqs, caller psr.Parser
-		num := orId().Or(&numInt).Or(&caller).Or(&rvIdent)
+		var term, muls, adds, expr, eqs, call, ifex psr.Parser
+		num := orId().Or(&numInt).Or(&call).Or(&rvIdent)
 
 		eqs = eqneqs(&adds)
 		adds = addsubs(&muls)
@@ -293,14 +296,17 @@ func Generator() psr.Parser {
 
 		assign := assigner(&lvIdent, &expr)
 		expr = orId().Or(&assign).Or(&eqs)
-		caller = funcCaller(&expr)
+		call = funcCaller(&expr)
 		semi := andId().And(&expr, true).And(psr.Semi, false)
 
 		line := andId().And(&semi, true).And(&popRax, true)
 		ret := returner(&semi)
 
-		retLine := orId().Or(&ret).Or(&line)
-		return andId().Rep(&retLine)
+		retIfLine := orId().Or(&ifex).Or(&ret).Or(&line)
+		lines := andId().Rep(&retIfLine)
+		ifex = ifer(&expr, &lines)
+
+		return andId().And(&lines, true)
 	}
 
 	function := funcDefiner(body)

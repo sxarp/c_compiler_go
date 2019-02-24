@@ -487,11 +487,26 @@ func TestIfer(t *testing.T) {
 			true,
 			"1",
 		},
+
+		{
+			"if(0) { return 1} if(1) { return 3} return 4",
+			[]asm.Fin{},
+			true,
+			"3",
+		},
+
+		{
+			"if(0) { return 1} if(0) { return 3} return 4",
+			[]asm.Fin{},
+			true,
+			"4",
+		},
 	} {
 		prologue := prologuer(newST())
 		ret := returner(&numInt)
 		iF := ifer(&numInt, &ret)
-		compCode(t, andId().And(&prologue, true).And(&iF, true).And(&ret, true), c)
+		ifRet := orId().Or(&iF).Or(&ret)
+		compCode(t, andId().And(&prologue, true).Rep(&ifRet), c)
 	}
 
 }

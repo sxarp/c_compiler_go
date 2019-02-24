@@ -103,4 +103,14 @@ sub(a,b){
 d = 4;
 return a-b + 4;}
 `)
+
+	compareMF(t, "1",
+		`
+main(){
+x = 1;
+if (x == 1) { return 1;}
+if (x == 2) { return 2;}
+return 0;
+}
+`)
 }
