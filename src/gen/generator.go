@@ -10,6 +10,7 @@ import (
 
 var orId = psr.OrId
 var andId = psr.AndId
+var null = andId()
 
 const wordSize = 8
 
@@ -153,47 +154,140 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 		})
 }
 
-func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
-	prologue := prologuer(st)
-	return andId().And(&prologue, true).And(expr, true).And(&epilogue, true).SetEval(
-		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 3)
+func returner(term *psr.Parser) psr.Parser {
+	retval := andId().And(term, true).And(&popRax, true)
+	ret := orId().Or(&retval).Or(&null)
+	return andId().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
+}
 
-			insts := code.(*asm.Insts)
+func funcCaller(term *psr.Parser) psr.Parser {
+	funcName := andId().And(psr.Var, true).
+		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
+
+	commed := andId().And(psr.Com, false).And(term, true).Trans(ast.PopSingle)
+
+	argRegs := []asm.Dested{
+		asm.I().Mov().Rdi(),
+		asm.I().Mov().Rsi(),
+		asm.I().Mov().Rdx(),
+		asm.I().Mov().Rcx(),
+		asm.I().Mov().R8(),
+		asm.I().Mov().R9(),
+	}
+
+	argvs := andId().And(term, true).Rep(&commed).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		if len(nodes) > 6 {
+			panic("too many arguments")
+		}
+
+		// Evaluate args from right to left and push into the stack.
+		for i := range nodes {
+			nodes[len(nodes)-i-1].Eval(code)
+		}
+
+		for i := range nodes {
+			code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i].Rax())
+		}
+	})
+
+	args := orId().Or(&argvs).Or(&null)
+
+	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[1].Eval(code)
+			nodes[0].Eval(code)
+			code.Ins(asm.I().Push().Rax())
+		})
+}
+
+func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
+	var st = new(SymTable)
+
+	funcName := andId().And(psr.Var, true).
+		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Label(nodes[0].Token.Val())) })
+
+	argRegs := []asm.Fin{
+		asm.I().Mov().Rax().P().Rdi(),
+		asm.I().Mov().Rax().P().Rsi(),
+		asm.I().Mov().Rax().P().Rdx(),
+		asm.I().Mov().Rax().P().Rcx(),
+		asm.I().Mov().Rax().P().R8(),
+		asm.I().Mov().Rax().P().R9(),
+	}
+
+	argv := andId().And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		seqNum := st.RefOf(nodes[0].Token.Val())
+
+		if seqNum >= 6 {
+			panic("too many arguments")
+		}
+
+		offSet := wordSize * (1 + seqNum)
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(offSet)).
+			Ins(argRegs[seqNum])
+	})
+
+	commed := andId().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)
+	argvs := andId().And(&argv, true).Rep(&commed)
+	args := orId().Or(&argvs).Or(&null)
+	body := bodyer(st)
+	prologue := prologuer(st)
+
+	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+		And(&prologue, true).And(psr.LBrc, false).And(&body, true).And(psr.RBrc, false).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 4)
+
+			*st = *newST()      // Initialize SymTable.
+			nodes[0].Eval(code) // Start defining function.
 
 			bottom := asm.New()
-			nodes[1].Eval(bottom)
-			nodes[2].Eval(bottom)
+			nodes[1].Eval(bottom) // Evaluete argvs.
+			nodes[3].Eval(bottom) // Evaluate body.
 
 			// Evaluate the prologue AST afterwards so that the symbol table can emit
 			// the correct number of variables declared, which is used by the prologue code
 			// to determine the size of the stack to allocate for the variables.
-			nodes[0].Eval(insts)
+			nodes[2].Eval(code)
 
+			insts := code.(*asm.Insts)
 			insts.Concat(bottom)
 		})
 }
 
 func Generator() psr.Parser {
-	st := newST()
-	lvIdent := lvIdenter(st)
-	rvIdent := rvIdenter(&lvIdent)
+	body := func(st *SymTable) psr.Parser {
+		lvIdent := lvIdenter(st)
+		rvIdent := rvIdenter(&lvIdent)
 
-	num := orId().Or(&numInt).Or(&rvIdent)
+		var term, muls, adds, expr, eqs, caller psr.Parser
+		num := orId().Or(&numInt).Or(&caller).Or(&rvIdent)
 
-	var term, muls, adds, expr, eqs psr.Parser
+		eqs = eqneqs(&adds)
+		adds = addsubs(&muls)
+		muls = muldivs(&term)
 
-	eqs = eqneqs(&adds)
-	adds = addsubs(&muls)
-	muls = muldivs(&term)
+		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
+		term = orId().Or(&num).Or(&parTerm)
 
-	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
-	term = orId().Or(&num).Or(&parTerm)
+		assign := assigner(&lvIdent, &expr)
+		expr = orId().Or(&assign).Or(&eqs)
+		caller = funcCaller(&expr)
+		semi := andId().And(&expr, true).And(psr.Semi, false)
 
-	assign := assigner(&lvIdent, &expr)
-	expr = orId().Or(&assign).Or(&eqs)
+		line := andId().And(&semi, true).And(&popRax, true)
+		ret := returner(&semi)
 
-	line := andId().And(&expr, true).And(psr.Semi, false).And(&popRax, true)
-	lines := andId().Rep(&line)
-	return funcWrapper(&lines, st).And(psr.EOF, false)
+		retLine := orId().Or(&ret).Or(&line)
+		return andId().Rep(&retLine)
+	}
+
+	function := funcDefiner(body)
+
+	functions := andId().Rep(&function)
+
+	return andId().And(&functions, true).And(psr.EOF, false)
 }

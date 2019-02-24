@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
@@ -20,20 +21,48 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	t.Helper()
 	lhs := asm.New()
 	var finalInst asm.Fin
-	for _, i := range c.ins {
-		lhs.Ins(i)
-		finalInst = i
+	var firstInst asm.Fin
+	for i, ins := range c.ins {
+		lhs.Ins(ins)
+		finalInst = ins
+		if i == 0 {
+			firstInst = ins
+		}
 	}
 
 	rhs := asm.New()
-	a, _ := p.Call(tok.Tokenize(c.rcode))
+	a, rem := p.Call(tok.Tokenize(c.rcode))
+	if len(rem) > 1 {
+		t.Errorf("failed to parse")
+	}
+
 	a.Eval(rhs)
-	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
+
+	if len(c.ins) > 0 {
+		h.ExpectEq(t, c.tf, lhs.Eq(rhs))
+		if c.tf && !lhs.Eq(rhs) {
+			lhsasm := asm.NewBuilder(lhs)
+			rhsasm := asm.NewBuilder(rhs)
+
+			fmt.Println("Expected:----------------")
+			fmt.Println(lhsasm.Str())
+			fmt.Println("Got:---------------------")
+			fmt.Println(rhsasm.Str())
+		}
+	}
 
 	if c.expected != "" {
 		ret := asm.I().Ret()
 		if !finalInst.Eq(&ret) {
 			rhs.Ins(asm.I().Pop().Rax()).Ins(asm.I().Ret())
+		}
+
+		ml := asm.I().Label("main")
+		if !firstInst.Eq(&ml) {
+			rrhs := asm.New()
+			rrhs.Ins(asm.I().Label("main"))
+			rrhs.Concat(rhs)
+			rhs = rrhs
 		}
 		execInstComp(t, c.expected, rhs)
 	}
@@ -41,7 +70,7 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 
 func execInstComp(t *testing.T, expected string, insts *asm.Insts) {
 	t.Helper()
-	if gotValue := h.ExecCode(t, asm.NewBuilder(insts).Main().Str(),
+	if gotValue := h.ExecCode(t, asm.NewBuilder(insts).Str(),
 		"../../tmp", "insts"); gotValue != expected {
 		t.Errorf("Expected %s, got %s.", expected, gotValue)
 	}
@@ -254,32 +283,6 @@ func TestPopRax(t *testing.T) {
 	}
 }
 
-func TestFuncWrapper(t *testing.T) {
-
-	for _, c := range []psrTestCase{
-		{
-
-			"1",
-			[]asm.Fin{
-				asm.I().Push().Rbp(),
-				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 2),
-				asm.I().Push().Val(1),
-				asm.I().Mov().Rsp().Rbp(),
-				asm.I().Pop().Rbp(),
-				asm.I().Ret(),
-			},
-			true,
-			"",
-		},
-	} {
-		st := newST()
-		st.RefOf("0")
-		st.RefOf("1")
-		compCode(t, funcWrapper(&numInt, st), c)
-	}
-}
-
 func TestLvIdenter(t *testing.T) {
 
 	for _, c := range []psrTestCase{
@@ -439,9 +442,235 @@ func TestNeqer(t *testing.T) {
 
 }
 
+func TestReturner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"return",
+			[]asm.Fin{
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"",
+		},
+
+		{
+			"return 1",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, returner(&numInt), c)
+	}
+}
+
+func TestFuncCaller(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"hoge()",
+			[]asm.Fin{
+				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(1)",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(1, 2)",
+			[]asm.Fin{
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsi().Rax(),
+				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(1, 2, 3, 4, 5, 6)",
+			[]asm.Fin{
+				asm.I().Push().Val(6),
+				asm.I().Push().Val(5),
+				asm.I().Push().Val(4),
+				asm.I().Push().Val(3),
+				asm.I().Push().Val(2),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsi().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdx().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rcx().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().R8().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().R9().Rax(),
+				asm.I().Call("hoge"),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, funcCaller(&numInt), c)
+	}
+
+}
+
+func TestFuncDefiner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"hoge(){return}",
+			[]asm.Fin{
+				asm.I().Label("hoge"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"",
+		},
+		{
+			"main(a){ return 22}",
+			[]asm.Fin{
+				asm.I().Label("main"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Mov().Rax().P().Rdi(),
+				asm.I().Push().Val(22),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"22",
+		},
+	} {
+		body := func(st *SymTable) psr.Parser { return returner(&numInt) }
+		compCode(t, funcDefiner(body), c)
+	}
+}
+
+func TestFuncDefineAndCall(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"main(){return id(11)}id(a){return a}",
+			[]asm.Fin{
+				asm.I().Label("main"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Push().Val(11),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Call("id"),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+				asm.I().Label("id"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Mov().Rax().P().Rdi(),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"11",
+		},
+		{
+			"main(){return sub(11+1, 5)}sub(a, b){return a - b}",
+			[]asm.Fin{},
+			true,
+			"7",
+		},
+		{
+			`
+	main(){return id(1,2,3,4,5,6)}
+id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
+`,
+			[]asm.Fin{},
+			true,
+			"0",
+		},
+		{
+			`
+	main(){return id(1,2,3,4,5,6) - add(1, 2)}
+id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
+add(a, b) { return a + b}
+`,
+			[]asm.Fin{},
+			true,
+			"1",
+		},
+	} {
+		body := func(st *SymTable) psr.Parser {
+			lvIdent := lvIdenter(st)
+			rvIdent := rvIdenter(&lvIdent)
+			var caller psr.Parser
+			callerOrIdentOrNum := orId().Or(&caller).Or(&rvIdent).Or(&numInt)
+			adds := addsubs(&callerOrIdentOrNum)
+			caller = funcCaller(&adds)
+			return returner(&adds)
+		}
+		fd := funcDefiner(body)
+		compCode(t, andId().Rep(&fd), c)
+	}
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{
+			asm.I().Label("main"),
 			asm.I().Push().Rbp(),
 			asm.I().Mov().Rbp().Rsp(),
 			asm.I().Sub().Rsp().Val(wordSize * 0),
@@ -460,7 +689,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"1;",
+			"main(){return 1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -470,7 +699,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"1+1;",
+			"main(){return 1+1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -485,7 +714,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1+2);",
+			"main(){return (1+2);}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -500,7 +729,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1-(2));",
+			"main(){return (1-(2));}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -512,6 +741,13 @@ func TestGenerator(t *testing.T) {
 			}),
 			true,
 			"255",
+		},
+
+		{
+			"main() {return}",
+			wrapInsts([]asm.Fin{}),
+			true,
+			"",
 		},
 	} {
 		compCode(t, Generator(), c)

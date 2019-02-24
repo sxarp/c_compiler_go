@@ -32,12 +32,6 @@ func NewBuilder(is *Insts) *Builder {
 	return &Builder{code: &sb, insts: is}
 }
 
-func (b *Builder) Main() *Builder {
-	b.code.Write("main:")
-
-	return b
-}
-
 func (is *Insts) Ins(i Fin) Code {
 	is.insts = append(is.insts, i)
 

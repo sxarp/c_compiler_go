@@ -30,6 +30,12 @@ func TestIns(t *testing.T) {
 	h.ExpectEq(t, "        sete al", I().Sete().Al().str())
 	h.ExpectEq(t, "        setne al", I().Setne().Al().str())
 	h.ExpectEq(t, "        movzb rax, al", I().Movzb().Rax().Al().str())
+	h.ExpectEq(t, "        call foo", I().Call("foo").str())
+	h.ExpectEq(t, "        mov rsi, rcx", I().Mov().Rsi().Rcx().str())
+	h.ExpectEq(t, "        mov rcx, rsi", I().Mov().Rcx().Rsi().str())
+	h.ExpectEq(t, "        mov r8, r9", I().Mov().R8().R9().str())
+	h.ExpectEq(t, "        mov r9, r8", I().Mov().R9().R8().str())
+	h.ExpectEq(t, "main:", I().Label("main").str())
 }
 
 func TestFinEq(t *testing.T) {

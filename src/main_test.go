@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
@@ -8,11 +9,18 @@ import (
 
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
-	h.ExpectEq(t, expected, h.ExecCode(t, compile(code), "../tmp", "src"))
+	h.ExpectEq(t, expected, h.ExecCode(t,
+		compile(fmt.Sprintf("main(){%s}", code)), "../tmp", "src"))
+}
+
+func compareMF(t *testing.T, expected, code string) {
+	t.Helper()
+	h.ExpectEq(t, expected, h.ExecCode(t,
+		compile(code), "../tmp", "src"))
 }
 
 func TestComp(t *testing.T) {
-	r := "42;"
+	r := "main(){return 42;}"
 
 	expected := `
 .intel_syntax noprefix
@@ -33,37 +41,31 @@ main:
 }
 
 func TestByCamperation(t *testing.T) {
-	compare(t, "42", "42;")
-	compare(t, "41", "41;")
-	compare(t, "1", "1;")
-	compare(t, "41", " 41 ;")
-	compare(t, "2", "1 + 1;")
-	compare(t, "0", "1 - 1;")
-	compare(t, "2", "1 - 5 + 6;")
-	compare(t, "3", "1 - 2 + 3 -4 + 5;")
-	compare(t, "3", "7 - (2 + 3) -4 + 5;")
-	compare(t, "9", "1 + (2 - 1) - (1 - (3 + 5) );")
-	compare(t, "2", "1 * (2 - 1) - (1 - (10 / 5) );")
-	compare(t, "10", "1 * (2 / 1) * 8 - 6;")
-	compare(t, "28", "a = 28;")
-	compare(t, "15", "z = 28 + 13 - 13 * 2;")
+	compare(t, "42", "return 42;")
+	compare(t, "2", "return 1 + 1;")
+	compare(t, "0", "return 1 - 1;")
+	compare(t, "3", "return 1 - 2 + 3 -4 + 5;")
+	compare(t, "9", "return 1 + (2 - 1) - (1 - (3 + 5) );")
+	compare(t, "2", "return 1 * (2 - 1) - (1 - (10 / 5) );")
+	compare(t, "28", "return a = 28;")
+	compare(t, "15", "return z = 28 + 13 - 13 * 2;")
 
-	compare(t, "42", "2;42;")
-	compare(t, "15", "z = 28 + 13 - 13 * 2; 5; c=15;")
-	compare(t, "15", "z = 28 + 13 - 13 * 2; 5; z;")
+	compare(t, "42", "2;return 42;")
+	compare(t, "15", "z = 28 + 13 - 13 * 2; 5; return z;")
 
-	compare(t, "24", "a = 1; b = a+1; c = b+1; 8*c;")
+	compare(t, "24", "a = 1; b = a+1; c = b+1; return 8*c;")
 
-	compare(t, "2", "a = b = c = 1+1;")
+	compare(t, "2", "return a = b = c = 1+1;")
 
-	compare(t, "1", "a = b = 1;a == b == 1;")
-	compare(t, "1", "a = b = 1;a == b + 1 == 0;")
-	compare(t, "1", "a = b = 1;a != b + 1 == 1;")
-	compare(t, "1", "a = b = 1;a != b == 0;")
+	compare(t, "1", "a = b = 1;return a == b == 1;")
+	compare(t, "1", "a = b = 1;return a == b + 1 == 0;")
+	compare(t, "1", "a = b = 1;return a != b + 1 == 1;")
+	compare(t, "1", "a = b = 1;return a != b == 0;")
+
+	compare(t, "6", "a=5;return (1+a);return 10;")
 
 	// Only 8bits are available for the parent processes, then exit codes are in 0 ~ 255.
 	// https://unix.stackexchange.com/questions/418784/what-is-the-min-and-max-values-of-exit-codes-in-linux
-	compare(t, "249", "1 - 2 + 3 -4 + 5 - 10;")
 	compare(t, "13",
 		`
 a = b = 1;
@@ -72,7 +74,7 @@ c = a; a = a + b; b = c;
 c = a; a = a + b; b = c;
 c = a; a = a + b; b = c;
 c = a; a = a + b; b = c;
-a;
+return a;
 `)
 	compare(t, "0",
 		`
@@ -81,7 +83,24 @@ beta = 11;
 gamma = 28;
 lhs = (alpha + beta + gamma)*(alpha * beta + beta * gamma + gamma * alpha) - alpha * beta * gamma;
 rhs = (alpha + beta)*(beta + gamma)*(gamma + alpha);
-lhs - rhs;
+return lhs - rhs;
 `)
 
+}
+
+func TestByMF(t *testing.T) {
+	compareMF(t, "9",
+		`
+main(){
+a = 2;
+return add(2, 3)+a;
+}
+add(a, b){
+c = 1;
+return a+b + sub(a, b) -c;
+}
+sub(a,b){
+d = 4;
+return a-b + 4;}
+`)
 }

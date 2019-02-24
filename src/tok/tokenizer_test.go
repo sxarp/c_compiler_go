@@ -87,6 +87,9 @@ func TestTokenizer(t *testing.T) {
 	expectTokens(t, Tokenize, "a+b=;", []string{"a", "+", "b", "=", ";", "EOF"})
 	expectTokens(t, Tokenize, "a==b", []string{"a", "==", "b", "EOF"})
 	expectTokens(t, Tokenize, "a!=b", []string{"a", "!=", "b", "EOF"})
+	expectTokens(t, Tokenize, "a,b", []string{"a", ",", "b", "EOF"})
+	expectTokens(t, Tokenize, "return returna", []string{"return", "return", "a", "EOF"})
+	expectTokens(t, Tokenize, "{,}", []string{"{", ",", "}", "EOF"})
 
 	tokens := Tokenize(`abc 123
 12 abc
