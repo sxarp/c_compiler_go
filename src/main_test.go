@@ -103,4 +103,17 @@ sub(a,b){
 d = 4;
 return a-b + 4;}
 `)
+
+	compareMF(t, "89",
+		`
+main(){
+x = 10;
+return fib(x);
+}
+fib(x){
+if (x == 1) { return 1;}
+if (x== 2) { return 2;}
+return fib(x-1) + fib(x-2);
+}
+`)
 }
