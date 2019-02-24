@@ -216,6 +216,7 @@ func (i Dested) Val(s int) Fin {
 
 func (i Dested) Rax() Fin { return regFin(i.i, Rax) }
 func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
+func (i Dested) Rdx() Fin { return regFin(i.i, Rdx) }
 func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
 func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
 func (i Dested) Al() Fin  { return regFin(i.i, Al) }

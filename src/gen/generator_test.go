@@ -44,9 +44,9 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 			fmt.Println("Got:---------------------")
 			fmt.Println(rhsasm.Str())
 		}
-	} else {
-		h.ExpectEq(t, false, lhs.Eq(rhs))
 	}
+
+	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
 
 	if c.expected != "" {
 		ret := asm.I().Ret()
@@ -576,6 +576,9 @@ func TestFuncDefiner(t *testing.T) {
 			"hoge()",
 			[]asm.Fin{
 				asm.I().Label("hoge"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 0),
 			},
 			true,
 			"",
@@ -584,6 +587,12 @@ func TestFuncDefiner(t *testing.T) {
 			"hoge(a)",
 			[]asm.Fin{
 				asm.I().Label("hoge"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Mov().Rax().P().Rdi(),
 			},
 			true,
 			"",

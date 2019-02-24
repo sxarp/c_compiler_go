@@ -160,20 +160,21 @@ func returner(term *psr.Parser) psr.Parser {
 	return andId().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
 }
 
-var argRegs = []asm.Fin{
-	asm.I().Mov().Rdi().Rax(),
-	asm.I().Mov().Rsi().Rax(),
-	asm.I().Mov().Rdx().Rax(),
-	asm.I().Mov().Rcx().Rax(),
-	asm.I().Mov().R8().Rax(),
-	asm.I().Mov().R9().Rax(),
-}
-
 func funcCaller(term *psr.Parser) psr.Parser {
 	funcName := andId().And(psr.Var, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
 
 	commed := andId().And(psr.Com, false).And(term, true).Trans(ast.PopSingle)
+
+	argRegs := []asm.Dested{
+		asm.I().Mov().Rdi(),
+		asm.I().Mov().Rsi(),
+		asm.I().Mov().Rdx(),
+		asm.I().Mov().Rcx(),
+		asm.I().Mov().R8(),
+		asm.I().Mov().R9(),
+	}
+
 	argvs := andId().And(term, true).Rep(&commed).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		if len(nodes) > 6 {
 			panic("too many arguments")
@@ -185,7 +186,7 @@ func funcCaller(term *psr.Parser) psr.Parser {
 		}
 
 		for i := range nodes {
-			code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i])
+			code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i].Rax())
 		}
 	})
 
@@ -201,19 +202,53 @@ func funcCaller(term *psr.Parser) psr.Parser {
 }
 
 func funcDefiner() psr.Parser {
+	var st = new(SymTable)
+
 	funcName := andId().And(psr.Var, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Label(nodes[0].Token.Val())) })
 
-	commed := andId().And(psr.Com, false).And(psr.Var, true).Trans(ast.PopSingle)
-	argvs := andId().And(psr.Var, true).Rep(&commed).SetEval(func(nodes []*ast.AST, code asm.Code) {
-		if len(nodes) > 6 {
+	argRegs := []asm.Fin{
+		asm.I().Mov().Rax().P().Rdi(),
+		asm.I().Mov().Rax().P().Rsi(),
+		asm.I().Mov().Rax().P().Rdx(),
+		asm.I().Mov().Rax().P().Rcx(),
+		asm.I().Mov().Rax().P().R8(),
+		asm.I().Mov().Rax().P().R9(),
+	}
+
+	argv := andId().And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		seqNum := st.RefOf(nodes[0].Token.Val())
+
+		if seqNum >= 6 {
 			panic("too many arguments")
 		}
+
+		offSet := wordSize * (1 + seqNum)
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(offSet)).
+			Ins(argRegs[seqNum])
 	})
 
+	commed := andId().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)
+	argvs := andId().And(&argv, true).Rep(&commed)
 	args := orId().Or(&argvs).Or(&null)
+	prologue := prologuer(st)
 
-	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false)
+	return andId().And(&funcName, true).And(&prologue, true).And(psr.LPar, false).And(&args, true).
+		And(psr.RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 3)
+
+		*st = *newST()      // Initialize SymTable.
+		nodes[0].Eval(code) // Start defining function.
+
+		bottom := asm.New()
+		nodes[2].Eval(bottom) // Evaluete argvs.
+		nodes[1].Eval(code)   // Evaluate prologue.
+
+		insts := code.(*asm.Insts)
+		insts.Concat(bottom)
+	})
 }
 
 func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
