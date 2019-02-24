@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
@@ -32,7 +33,20 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	}
 
 	a.Eval(rhs)
-	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
+
+	if c.tf {
+		if !lhs.Eq(rhs) {
+			lhsasm := asm.NewBuilder(lhs)
+			rhsasm := asm.NewBuilder(rhs)
+
+			fmt.Println("Expected:----------------")
+			fmt.Println(lhsasm.Str())
+			fmt.Println("Got:---------------------")
+			fmt.Println(rhsasm.Str())
+		}
+	} else {
+		h.ExpectEq(t, false, lhs.Eq(rhs))
+	}
 
 	if c.expected != "" {
 		ret := asm.I().Ret()
@@ -553,6 +567,30 @@ func TestFuncCaller(t *testing.T) {
 		compCode(t, funcCaller(&numInt), c)
 	}
 
+}
+
+func TestFuncDefiner(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"hoge()",
+			[]asm.Fin{
+				asm.I().Label("hoge"),
+			},
+			true,
+			"",
+		},
+		{
+			"hoge(a)",
+			[]asm.Fin{
+				asm.I().Label("hoge"),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, funcDefiner(), c)
+	}
 }
 
 func wrapInsts(insts []asm.Fin) []asm.Fin {
