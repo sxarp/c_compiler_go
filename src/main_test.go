@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/sxarp/c_compiler_go/src/h"
@@ -8,11 +9,18 @@ import (
 
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
-	h.ExpectEq(t, expected, h.ExecCode(t, compile(code), "../tmp", "src"))
+	h.ExpectEq(t, expected, h.ExecCode(t,
+		compile(fmt.Sprintf("main(){%s}", code)), "../tmp", "src"))
+}
+
+func compareMF(t *testing.T, expected, code string) {
+	t.Helper()
+	h.ExpectEq(t, expected, h.ExecCode(t,
+		compile(code), "../tmp", "src"))
 }
 
 func TestComp(t *testing.T) {
-	r := "return 42;"
+	r := "main(){return 42;}"
 
 	expected := `
 .intel_syntax noprefix
@@ -78,4 +86,21 @@ rhs = (alpha + beta)*(beta + gamma)*(gamma + alpha);
 return lhs - rhs;
 `)
 
+}
+
+func TestByMF(t *testing.T) {
+	compareMF(t, "9",
+		`
+main(){
+a = 2;
+return add(2, 3)+a;
+}
+add(a, b){
+c = 1;
+return a+b + sub(a, b) -c;
+}
+sub(a,b){
+d = 4;
+return a-b + 4;}
+`)
 }

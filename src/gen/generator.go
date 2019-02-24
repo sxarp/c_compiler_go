@@ -276,31 +276,35 @@ func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
 }
 
 func Generator() psr.Parser {
-	st := newST()
-	lvIdent := lvIdenter(st)
-	rvIdent := rvIdenter(&lvIdent)
+	body := func(st *SymTable) psr.Parser {
+		lvIdent := lvIdenter(st)
+		rvIdent := rvIdenter(&lvIdent)
 
-	num := orId().Or(&numInt).Or(&rvIdent)
+		var term, muls, adds, expr, eqs, caller psr.Parser
+		num := orId().Or(&numInt).Or(&caller).Or(&rvIdent)
 
-	var term, muls, adds, expr, eqs psr.Parser
+		eqs = eqneqs(&adds)
+		adds = addsubs(&muls)
+		muls = muldivs(&term)
 
-	eqs = eqneqs(&adds)
-	adds = addsubs(&muls)
-	muls = muldivs(&term)
+		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
+		term = orId().Or(&num).Or(&parTerm)
 
-	parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
-	term = orId().Or(&num).Or(&parTerm)
+		assign := assigner(&lvIdent, &expr)
+		expr = orId().Or(&assign).Or(&eqs)
+		caller = funcCaller(&expr)
+		semi := andId().And(&expr, true).And(psr.Semi, false)
 
-	assign := assigner(&lvIdent, &expr)
-	expr = orId().Or(&assign).Or(&eqs)
-	semi := andId().And(&expr, true).And(psr.Semi, false)
+		line := andId().And(&semi, true).And(&popRax, true)
+		ret := returner(&semi)
 
-	line := andId().And(&semi, true).And(&popRax, true)
-	ret := returner(&semi)
+		retLine := orId().Or(&ret).Or(&line)
+		return andId().Rep(&retLine)
+	}
 
-	retLine := orId().Or(&ret).Or(&line)
-	retLines := andId().Rep(&retLine)
-	withReturn := andId().And(&retLines, true) //.And(&ret, true)
+	function := funcDefiner(body)
 
-	return funcWrapper(&withReturn, st).And(psr.EOF, false)
+	functions := andId().Rep(&function)
+
+	return andId().And(&functions, true).And(psr.EOF, false)
 }

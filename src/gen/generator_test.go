@@ -689,7 +689,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"return 1;",
+			"main(){return 1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -699,7 +699,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"return 1+1;",
+			"main(){return 1+1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -714,7 +714,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"return (1+2);",
+			"main(){return (1+2);}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -729,7 +729,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"return (1-(2));",
+			"main(){return (1-(2));}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -744,19 +744,10 @@ func TestGenerator(t *testing.T) {
 		},
 
 		{
-			"return",
+			"main() {return}",
 			wrapInsts([]asm.Fin{}),
 			true,
 			"",
-		},
-		{
-			"return 1;",
-			wrapInsts([]asm.Fin{
-				asm.I().Push().Val(1),
-				asm.I().Pop().Rax(),
-			}),
-			true,
-			"1",
 		},
 	} {
 		compCode(t, Generator(), c)
