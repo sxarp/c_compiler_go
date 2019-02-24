@@ -21,9 +21,13 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 	t.Helper()
 	lhs := asm.New()
 	var finalInst asm.Fin
-	for _, i := range c.ins {
-		lhs.Ins(i)
-		finalInst = i
+	var firstInst asm.Fin
+	for i, ins := range c.ins {
+		lhs.Ins(ins)
+		finalInst = ins
+		if i == 0 {
+			firstInst = ins
+		}
 	}
 
 	rhs := asm.New()
@@ -34,8 +38,9 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 
 	a.Eval(rhs)
 
-	if c.tf {
-		if !lhs.Eq(rhs) {
+	if len(c.ins) > 0 {
+		h.ExpectEq(t, c.tf, lhs.Eq(rhs))
+		if c.tf && !lhs.Eq(rhs) {
 			lhsasm := asm.NewBuilder(lhs)
 			rhsasm := asm.NewBuilder(rhs)
 
@@ -46,8 +51,6 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 		}
 	}
 
-	h.ExpectEq(t, c.tf, lhs.Eq(rhs))
-
 	if c.expected != "" {
 		ret := asm.I().Ret()
 		if !finalInst.Eq(&ret) {
@@ -55,7 +58,7 @@ func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
 		}
 
 		ml := asm.I().Label("main")
-		if !c.ins[0].Eq(&ml) {
+		if !firstInst.Eq(&ml) {
 			rrhs := asm.New()
 			rrhs.Ins(asm.I().Label("main"))
 			rrhs.Concat(rhs)
@@ -651,13 +654,40 @@ func TestFuncDefineAndCall(t *testing.T) {
 			true,
 			"11",
 		},
+		{
+			"main(){return sub(11+1, 5)}sub(a, b){return a - b}",
+			[]asm.Fin{},
+			true,
+			"7",
+		},
+		{
+			`
+	main(){return id(1,2,3,4,5,6)}
+id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
+`,
+			[]asm.Fin{},
+			true,
+			"0",
+		},
+		{
+			`
+	main(){return id(1,2,3,4,5,6) - add(1, 2)}
+id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
+add(a, b) { return a + b}
+`,
+			[]asm.Fin{},
+			true,
+			"1",
+		},
 	} {
 		body := func(st *SymTable) psr.Parser {
 			lvIdent := lvIdenter(st)
 			rvIdent := rvIdenter(&lvIdent)
-			caller := funcCaller(&numInt)
-			val := orId().Or(&caller).Or(&numInt).Or(&rvIdent)
-			return returner(&val)
+			var caller psr.Parser
+			callerOrIdentOrNum := orId().Or(&caller).Or(&rvIdent).Or(&numInt)
+			adds := addsubs(&callerOrIdentOrNum)
+			caller = funcCaller(&adds)
+			return returner(&adds)
 		}
 		fd := funcDefiner(body)
 		compCode(t, andId().Rep(&fd), c)
