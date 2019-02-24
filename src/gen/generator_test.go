@@ -611,6 +611,59 @@ func TestFuncDefiner(t *testing.T) {
 	}
 }
 
+func TestFuncDefineAndCall(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"main(){return id(11)}id(a){return a}",
+			[]asm.Fin{
+				asm.I().Label("main"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Push().Val(11),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rdi().Rax(),
+				asm.I().Call("id"),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+				asm.I().Label("id"),
+				asm.I().Push().Rbp(),
+				asm.I().Mov().Rbp().Rsp(),
+				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Mov().Rax().P().Rdi(),
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
+			},
+			true,
+			"11",
+		},
+	} {
+		body := func(st *SymTable) psr.Parser {
+			lvIdent := lvIdenter(st)
+			rvIdent := rvIdenter(&lvIdent)
+			caller := funcCaller(&numInt)
+			val := orId().Or(&caller).Or(&numInt).Or(&rvIdent)
+			return returner(&val)
+		}
+		fd := funcDefiner(body)
+		compCode(t, andId().Rep(&fd), c)
+	}
+}
+
 func wrapInsts(insts []asm.Fin) []asm.Fin {
 	return append(append(
 		[]asm.Fin{
