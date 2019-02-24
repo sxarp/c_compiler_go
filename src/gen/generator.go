@@ -248,29 +248,12 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 			nodes[1].Eval(bottom) // Evaluete argvs.
 			nodes[3].Eval(bottom) // Evaluate body.
 
-			nodes[2].Eval(code) // Evaluate prologue.
-			insts := code.(*asm.Insts)
-			insts.Concat(bottom)
-		})
-}
-
-func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
-	prologue := prologuer(st)
-	return andId().And(&prologue, true).And(expr, true).SetEval(
-		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 2)
-
-			insts := code.(*asm.Insts)
-			insts.Ins(asm.I().Label("main"))
-
-			bottom := asm.New()
-			nodes[1].Eval(bottom)
-
 			// Evaluate the prologue AST afterwards so that the symbol table can emit
 			// the correct number of variables declared, which is used by the prologue code
 			// to determine the size of the stack to allocate for the variables.
-			nodes[0].Eval(insts)
+			nodes[2].Eval(code)
 
+			insts := code.(*asm.Insts)
 			insts.Concat(bottom)
 		})
 }
