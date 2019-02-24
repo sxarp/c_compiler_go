@@ -155,6 +155,12 @@ func (i Ini) Call(name string) Fin {
 	return Fin{i: i.i}
 }
 
+func (i Ini) Je(name string) Fin {
+	i.i.ope = Ope{i: "je"}
+	i.i.toS = func() string { return name }
+	return Fin{i: i.i}
+}
+
 func (i Ini) Label(name string) Fin {
 	i.i.label = name
 	return Fin{i: i.i}

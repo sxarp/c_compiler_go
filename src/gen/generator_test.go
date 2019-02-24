@@ -473,6 +473,29 @@ func TestReturner(t *testing.T) {
 	}
 }
 
+func TestIfer(t *testing.T) {
+	for _, c := range []psrTestCase{
+		{
+			"if(0) { return 1} return 2",
+			[]asm.Fin{},
+			true,
+			"2",
+		},
+		{
+			"if(1) { return 1} return 2",
+			[]asm.Fin{},
+			true,
+			"1",
+		},
+	} {
+		prologue := prologuer(newST())
+		ret := returner(&numInt)
+		iF := ifer(&numInt, &ret)
+		compCode(t, andId().And(&prologue, true).And(&iF, true).And(&ret, true), c)
+	}
+
+}
+
 func TestFuncCaller(t *testing.T) {
 
 	for _, c := range []psrTestCase{

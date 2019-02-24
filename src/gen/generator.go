@@ -160,6 +160,24 @@ func returner(term *psr.Parser) psr.Parser {
 	return andId().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
 }
 
+func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
+	return andId().And(psr.If, false).And(psr.LPar, false).And(condition, true).And(psr.RPar, false).
+		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[0].Eval(code)
+
+			lend := ".Lend"
+			code.
+				Ins(asm.I().Pop().Rax()).
+				Ins(asm.I().Cmp().Rax().Val(0)).
+				Ins(asm.I().Je(lend))
+
+			nodes[1].Eval(code)
+			code.Ins(asm.I().Label(lend))
+		})
+}
+
 func funcCaller(term *psr.Parser) psr.Parser {
 	funcName := andId().And(psr.Var, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
