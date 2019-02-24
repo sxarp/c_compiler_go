@@ -256,16 +256,15 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 
 func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
 	prologue := prologuer(st)
-	return andId().And(&prologue, true).And(expr, true).And(&epilogue, true).SetEval(
+	return andId().And(&prologue, true).And(expr, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 3)
+			checkNodeCount(nodes, 2)
 
 			insts := code.(*asm.Insts)
 			insts.Ins(asm.I().Label("main"))
 
 			bottom := asm.New()
 			nodes[1].Eval(bottom)
-			nodes[2].Eval(bottom)
 
 			// Evaluate the prologue AST afterwards so that the symbol table can emit
 			// the correct number of variables declared, which is used by the prologue code
@@ -301,6 +300,7 @@ func Generator() psr.Parser {
 
 	retLine := orId().Or(&ret).Or(&line)
 	retLines := andId().Rep(&retLine)
+	withReturn := andId().And(&retLines, true) //.And(&ret, true)
 
-	return funcWrapper(&retLines, st).And(psr.EOF, false)
+	return funcWrapper(&withReturn, st).And(psr.EOF, false)
 }

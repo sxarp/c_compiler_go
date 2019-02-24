@@ -283,33 +283,6 @@ func TestPopRax(t *testing.T) {
 	}
 }
 
-func TestFuncWrapper(t *testing.T) {
-
-	for _, c := range []psrTestCase{
-		{
-
-			"1",
-			[]asm.Fin{
-				asm.I().Label("main"),
-				asm.I().Push().Rbp(),
-				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 2),
-				asm.I().Push().Val(1),
-				asm.I().Mov().Rsp().Rbp(),
-				asm.I().Pop().Rbp(),
-				asm.I().Ret(),
-			},
-			true,
-			"",
-		},
-	} {
-		st := newST()
-		st.RefOf("0")
-		st.RefOf("1")
-		compCode(t, funcWrapper(&numInt, st), c)
-	}
-}
-
 func TestLvIdenter(t *testing.T) {
 
 	for _, c := range []psrTestCase{
@@ -716,7 +689,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"1;",
+			"return 1;",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -726,7 +699,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"1+1;",
+			"return 1+1;",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -741,7 +714,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1+2);",
+			"return (1+2);",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -756,7 +729,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"(1-(2));",
+			"return (1-(2));",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -772,11 +745,7 @@ func TestGenerator(t *testing.T) {
 
 		{
 			"return",
-			wrapInsts([]asm.Fin{
-				asm.I().Mov().Rsp().Rbp(),
-				asm.I().Pop().Rbp(),
-				asm.I().Ret(),
-			}),
+			wrapInsts([]asm.Fin{}),
 			true,
 			"",
 		},
@@ -785,9 +754,6 @@ func TestGenerator(t *testing.T) {
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
-				asm.I().Mov().Rsp().Rbp(),
-				asm.I().Pop().Rbp(),
-				asm.I().Ret(),
 			}),
 			true,
 			"1",
