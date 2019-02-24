@@ -573,32 +573,41 @@ func TestFuncDefiner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"hoge()",
+			"hoge(){return}",
 			[]asm.Fin{
 				asm.I().Label("hoge"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
 				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
 			},
 			true,
 			"",
 		},
 		{
-			"hoge(a)",
+			"main(a){ return 22}",
 			[]asm.Fin{
-				asm.I().Label("hoge"),
+				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
 				asm.I().Sub().Rsp().Val(wordSize * 1),
 				asm.I().Mov().Rax().Rbp(),
 				asm.I().Sub().Rax().Val(wordSize * 1),
 				asm.I().Mov().Rax().P().Rdi(),
+				asm.I().Push().Val(22),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rsp().Rbp(),
+				asm.I().Pop().Rbp(),
+				asm.I().Ret(),
 			},
 			true,
-			"",
+			"22",
 		},
 	} {
-		compCode(t, funcDefiner(), c)
+		body := func(st *SymTable) psr.Parser { return returner(&numInt) }
+		compCode(t, funcDefiner(body), c)
 	}
 }
 

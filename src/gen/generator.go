@@ -201,7 +201,7 @@ func funcCaller(term *psr.Parser) psr.Parser {
 		})
 }
 
-func funcDefiner() psr.Parser {
+func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 	var st = new(SymTable)
 
 	funcName := andId().And(psr.Var, true).
@@ -233,22 +233,25 @@ func funcDefiner() psr.Parser {
 	commed := andId().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)
 	argvs := andId().And(&argv, true).Rep(&commed)
 	args := orId().Or(&argvs).Or(&null)
+	body := bodyer(st)
 	prologue := prologuer(st)
 
-	return andId().And(&funcName, true).And(&prologue, true).And(psr.LPar, false).And(&args, true).
-		And(psr.RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
-		checkNodeCount(nodes, 3)
+	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+		And(&prologue, true).And(psr.LBrc, false).And(&body, true).And(psr.RBrc, false).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 4)
 
-		*st = *newST()      // Initialize SymTable.
-		nodes[0].Eval(code) // Start defining function.
+			*st = *newST()      // Initialize SymTable.
+			nodes[0].Eval(code) // Start defining function.
 
-		bottom := asm.New()
-		nodes[2].Eval(bottom) // Evaluete argvs.
-		nodes[1].Eval(code)   // Evaluate prologue.
+			bottom := asm.New()
+			nodes[1].Eval(bottom) // Evaluete argvs.
+			nodes[3].Eval(bottom) // Evaluate body.
 
-		insts := code.(*asm.Insts)
-		insts.Concat(bottom)
-	})
+			nodes[2].Eval(code) // Evaluate prologue.
+			insts := code.(*asm.Insts)
+			insts.Concat(bottom)
+		})
 }
 
 func funcWrapper(expr *psr.Parser, st *SymTable) psr.Parser {
