@@ -104,13 +104,16 @@ d = 4;
 return a-b + 4;}
 `)
 
-	compareMF(t, "1",
+	compareMF(t, "89",
 		`
 main(){
-x = 1;
+x = 10;
+return fib(x);
+}
+fib(x){
 if (x == 1) { return 1;}
-if (x == 2) { return 2;}
-return 0;
+if (x== 2) { return 2;}
+return fib(x-1) + fib(x-2);
 }
 `)
 }
