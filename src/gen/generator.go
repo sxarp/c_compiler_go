@@ -286,7 +286,6 @@ func Generator() psr.Parser {
 	}
 
 	function := funcDefiner(body)
-
 	functions := andId().Rep(&function)
 
 	return andId().And(&functions, true).And(psr.EOF, false)
