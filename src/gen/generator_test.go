@@ -243,8 +243,8 @@ func TestProloguer(t *testing.T) {
 		},
 	} {
 		st := newST()
-		st.RefOf("0")
-		st.RefOf("1")
+		st.DecOf("0")
+		st.DecOf("1")
 		compCode(t, prologuer(st), c)
 	}
 }
@@ -300,17 +300,20 @@ func TestLvIdenter(t *testing.T) {
 
 		{
 
-			"z",
+			"b",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(wordSize * 2),
 				asm.I().Push().Rax(),
 			},
 			true,
 			"",
 		},
 	} {
-		compCode(t, lvIdenter(newST()), c)
+		st := newST()
+		st.DecOf("a")
+		st.DecOf("b")
+		compCode(t, lvIdenter(st), c)
 	}
 
 }
@@ -332,7 +335,9 @@ func TestRvIdent(t *testing.T) {
 			"",
 		},
 	} {
-		lvIdent := lvIdenter(newST())
+		st := newST()
+		st.DecOf("a")
+		lvIdent := lvIdenter(st)
 		compCode(t, rvIdenter(&lvIdent), c)
 	}
 
@@ -358,6 +363,19 @@ func TestAssigner(t *testing.T) {
 		compCode(t, assigner(&numInt, &numInt), c)
 	}
 
+}
+
+func TestIntDeclarer(t *testing.T) {
+	for _, c := range []psrTestCase{
+		{
+			"int a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+	} {
+		compCode(t, intDeclarer(newST()), c)
+	}
 }
 
 func TestEqer(t *testing.T) {
