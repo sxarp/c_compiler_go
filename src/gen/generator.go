@@ -154,6 +154,14 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 		})
 }
 
+func intDeclarer(st *SymTable) psr.Parser {
+	return andId().And(psr.Intd, false).And(psr.Var, true).And(psr.Semi, false).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 1)
+			st.DecOf(nodes[0].Token.Val())
+		})
+}
+
 func returner(term *psr.Parser) psr.Parser {
 	retval := andId().And(term, true).And(&popRax, true)
 	ret := orId().Or(&retval).Or(&null)
@@ -316,8 +324,11 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 		asm.I().Mov().Rax().P().R9(),
 	}
 
-	argv := andId().And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
-		seqNum := st.RefOf(nodes[0].Token.Val())
+	argv := andId().And(psr.Intd, false).And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		symbol := nodes[0].Token.Val()
+
+		st.DecOf(symbol)
+		seqNum := st.RefOf(symbol)
 
 		if seqNum >= 6 {
 			panic("too many arguments")
@@ -336,7 +347,7 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 	body := bodyer(st)
 	prologue := prologuer(st)
 
-	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+	return andId().And(psr.Intd, false).And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
 		And(&prologue, true).And(psr.LBrc, false).And(&body, true).And(psr.RBrc, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 4)
@@ -377,11 +388,12 @@ func Generator() psr.Parser {
 		expr = orId().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		semi := andId().And(&expr, true).And(psr.Semi, false)
+		intDeclare := intDeclarer(st)
 
 		line := andId().And(&semi, true).And(&popRax, true)
 		ret := returner(&semi)
 
-		body := orId().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&line)
+		body := orId().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&intDeclare).Or(&line)
 		bodies := andId().Rep(&body)
 
 		ifex = ifer(&expr, &bodies)

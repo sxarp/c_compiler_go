@@ -243,8 +243,8 @@ func TestProloguer(t *testing.T) {
 		},
 	} {
 		st := newST()
-		st.RefOf("0")
-		st.RefOf("1")
+		st.DecOf("0")
+		st.DecOf("1")
 		compCode(t, prologuer(st), c)
 	}
 }
@@ -300,17 +300,20 @@ func TestLvIdenter(t *testing.T) {
 
 		{
 
-			"z",
+			"b",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(wordSize * 2),
 				asm.I().Push().Rax(),
 			},
 			true,
 			"",
 		},
 	} {
-		compCode(t, lvIdenter(newST()), c)
+		st := newST()
+		st.DecOf("a")
+		st.DecOf("b")
+		compCode(t, lvIdenter(st), c)
 	}
 
 }
@@ -332,7 +335,9 @@ func TestRvIdent(t *testing.T) {
 			"",
 		},
 	} {
-		lvIdent := lvIdenter(newST())
+		st := newST()
+		st.DecOf("a")
+		lvIdent := lvIdenter(st)
 		compCode(t, rvIdenter(&lvIdent), c)
 	}
 
@@ -358,6 +363,19 @@ func TestAssigner(t *testing.T) {
 		compCode(t, assigner(&numInt, &numInt), c)
 	}
 
+}
+
+func TestIntDeclarer(t *testing.T) {
+	for _, c := range []psrTestCase{
+		{
+			"int a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+	} {
+		compCode(t, intDeclarer(newST()), c)
+	}
 }
 
 func TestEqer(t *testing.T) {
@@ -636,7 +654,7 @@ func TestFuncDefiner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"hoge(){return}",
+			"int hoge(){return}",
 			[]asm.Fin{
 				asm.I().Label("hoge"),
 				asm.I().Push().Rbp(),
@@ -650,7 +668,7 @@ func TestFuncDefiner(t *testing.T) {
 			"",
 		},
 		{
-			"main(a){ return 22}",
+			"int main(int a){ return 22}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -678,7 +696,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"main(){return id(11)}id(a){return a}",
+			"int main(){return id(11)}int id(int a){return a}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -715,15 +733,15 @@ func TestFuncDefineAndCall(t *testing.T) {
 			"11",
 		},
 		{
-			"main(){return sub(11+1, 5)}sub(a, b){return a - b}",
+			"int main(){return sub(11+1, 5)} int sub(int a, int b){return a - b}",
 			[]asm.Fin{},
 			true,
 			"7",
 		},
 		{
 			`
-	main(){return id(1,2,3,4,5,6)}
-id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
+	int main(){return id(1,2,3,4,5,6)}
+int id(int a, int b, int c, int d, int e, int f){return a - b + c - d + e - f + 3}
 `,
 			[]asm.Fin{},
 			true,
@@ -731,9 +749,9 @@ id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
 		},
 		{
 			`
-	main(){return id(1,2,3,4,5,6) - add(1, 2)}
-id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
-add(a, b) { return a + b}
+	int main(){return id(1,2,3,4,5,6) - add(1, 2)}
+int id(int a, int b, int c, int d, int e, int f){return a - b + c - d + e - f + add(3, 4)}
+int add(int a, int b) { return a + b}
 `,
 			[]asm.Fin{},
 			true,
@@ -776,7 +794,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"main(){return 1;}",
+			"int main(){return 1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -786,7 +804,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return 1+1;}",
+			"int main(){return 1+1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -801,7 +819,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return (1+2);}",
+			"int main(){return (1+2);}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -816,7 +834,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return (1-(2));}",
+			"int main(){return (1-(2));}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -831,7 +849,7 @@ func TestGenerator(t *testing.T) {
 		},
 
 		{
-			"main() {return}",
+			"int main() {return}",
 			wrapInsts([]asm.Fin{}),
 			true,
 			"",
