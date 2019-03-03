@@ -181,6 +181,85 @@ func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
 		})
 }
 
+var whilecount int
+
+func whiler(condition, body *psr.Parser) psr.Parser {
+	return andId().And(psr.While, false).And(psr.LPar, false).And(condition, true).And(psr.RPar, false).
+		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			begin, end := fmt.Sprintf("while_begin_%d", whilecount),
+				fmt.Sprintf("while_end_%d", whilecount)
+
+			code.Ins(asm.I().Label(begin))
+
+			// Evaluate the condition part.
+			nodes[0].Eval(code)
+
+			// If the condition part is evaluated as zero, then go to end.
+			code.
+				Ins(asm.I().Pop().Rax()).
+				Ins(asm.I().Cmp().Rax().Val(0)).
+				Ins(asm.I().Je(end))
+
+			// Evaluate the body part.
+			nodes[1].Eval(code)
+
+			// Unconditional jump to begin.
+			code.Ins(asm.I().Jmp(begin))
+
+			code.Ins(asm.I().Label(end))
+
+			whilecount += 1
+		})
+}
+
+var forcount int
+
+func forer(conditions, body *psr.Parser) psr.Parser {
+	nullCond := orId().Or(conditions).Or(&null)
+	semiCond := andId().And(&nullCond, true).And(psr.Semi, false)
+	ini := andId().And(&semiCond, true).And(&popRax, true)
+	incr := andId().And(&nullCond, true).And(&popRax, true)
+
+	return andId().And(psr.For, false).And(psr.LPar, false).
+		And(&ini, true).And(&semiCond, true).And(&incr, true).And(psr.RPar, false).
+		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 4)
+
+			begin, end := fmt.Sprintf("for_begin_%d", forcount),
+				fmt.Sprintf("for_end_%d", forcount)
+
+			// Evaluate the initialization part.
+			nodes[0].Eval(code)
+
+			code.Ins(asm.I().Label(begin))
+
+			// Evaluate the condition part.
+			nodes[1].Eval(code)
+
+			// If condition part is evaluated as zero, then go to end.
+			code.
+				Ins(asm.I().Pop().Rax()).
+				Ins(asm.I().Cmp().Rax().Val(0)).
+				Ins(asm.I().Je(end))
+
+			// Evaluate the increment part.
+			nodes[2].Eval(code)
+
+			// Evaluate the body part.
+			nodes[3].Eval(code)
+
+			// Unconditional jump to begin.
+			code.Ins(asm.I().Jmp(begin))
+
+			code.Ins(asm.I().Label(end))
+
+			forcount++
+		})
+}
+
 func funcCaller(term *psr.Parser) psr.Parser {
 	funcName := andId().And(psr.Var, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
@@ -284,7 +363,7 @@ func Generator() psr.Parser {
 		lvIdent := lvIdenter(st)
 		rvIdent := rvIdenter(&lvIdent)
 
-		var term, muls, adds, expr, eqs, call, ifex psr.Parser
+		var term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
 		num := orId().Or(&numInt).Or(&call).Or(&rvIdent)
 
 		eqs = eqneqs(&adds)
@@ -302,11 +381,14 @@ func Generator() psr.Parser {
 		line := andId().And(&semi, true).And(&popRax, true)
 		ret := returner(&semi)
 
-		retIfLine := orId().Or(&ifex).Or(&ret).Or(&line)
-		lines := andId().Rep(&retIfLine)
-		ifex = ifer(&expr, &lines)
+		body := orId().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&line)
+		bodies := andId().Rep(&body)
 
-		return andId().And(&lines, true)
+		ifex = ifer(&expr, &bodies)
+		forex = forer(&expr, &bodies)
+		while = whiler(&expr, &bodies)
+
+		return andId().And(&bodies, true)
 	}
 
 	function := funcDefiner(body)

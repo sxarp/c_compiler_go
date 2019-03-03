@@ -22,6 +22,8 @@ var Ret *Parser = tokenTypeToPsr(&tok.TRet)
 var LBrc *Parser = tokenTypeToPsr(&tok.TLBrc)
 var RBrc *Parser = tokenTypeToPsr(&tok.TRBrc)
 var If *Parser = tokenTypeToPsr(&tok.TIf)
+var For *Parser = tokenTypeToPsr(&tok.TFor)
+var While *Parser = tokenTypeToPsr(&tok.TWhile)
 
 // To show informative error messages.
 func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
