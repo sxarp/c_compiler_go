@@ -10,7 +10,7 @@ import (
 func compare(t *testing.T, expected, code string) {
 	t.Helper()
 	h.ExpectEq(t, expected, h.ExecCode(t,
-		compile(fmt.Sprintf("main(){%s}", code)), "../tmp", "src"))
+		compile(fmt.Sprintf("int main(){%s}", code)), "../tmp", "src"))
 }
 
 func compareMF(t *testing.T, expected, code string) {
@@ -20,7 +20,7 @@ func compareMF(t *testing.T, expected, code string) {
 }
 
 func TestComp(t *testing.T) {
-	r := "main(){return 42;}"
+	r := "int main(){return 42;}"
 
 	expected := `
 .intel_syntax noprefix
@@ -91,26 +91,26 @@ return lhs - rhs;
 func TestByMF(t *testing.T) {
 	compareMF(t, "9",
 		`
-main(){
+int main(){
 a = 2;
 return add(2, 3)+a;
 }
-add(a, b){
+int add(a, b){
 c = 1;
 return a+b + sub(a, b) -c;
 }
-sub(a,b){
+int sub(a,b){
 d = 4;
 return a-b + 4;}
 `)
 
 	compareMF(t, "89",
 		`
-main(){
+int main(){
 x = 10;
 return fib(x);
 }
-fib(x){
+int fib(x){
 if (x == 1) { return 1;}
 if (x== 2) { return 2;}
 return fib(x-1) + fib(x-2);
@@ -119,7 +119,7 @@ return fib(x-1) + fib(x-2);
 
 	compareMF(t, "10",
 		`
-main(){
+int main(){
 a = 10;
 b = 0;
 while (a) {
@@ -132,7 +132,7 @@ return b;
 
 	compareMF(t, "89",
 		`
-main(){
+int main(){
 n = 0;
 a = 1;
 b = 1;
@@ -149,7 +149,7 @@ return a;
 
 	compareMF(t, "89",
 		`
-main(){
+int main(){
 a = 1;
 b = 1;
 for (n = 0; n != 9; n=n+1) {

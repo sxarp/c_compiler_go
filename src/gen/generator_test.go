@@ -636,7 +636,7 @@ func TestFuncDefiner(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"hoge(){return}",
+			"int hoge(){return}",
 			[]asm.Fin{
 				asm.I().Label("hoge"),
 				asm.I().Push().Rbp(),
@@ -650,7 +650,7 @@ func TestFuncDefiner(t *testing.T) {
 			"",
 		},
 		{
-			"main(a){ return 22}",
+			"int main(a){ return 22}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -678,7 +678,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"main(){return id(11)}id(a){return a}",
+			"int main(){return id(11)}int id(a){return a}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -715,15 +715,15 @@ func TestFuncDefineAndCall(t *testing.T) {
 			"11",
 		},
 		{
-			"main(){return sub(11+1, 5)}sub(a, b){return a - b}",
+			"int main(){return sub(11+1, 5)} int sub(a, b){return a - b}",
 			[]asm.Fin{},
 			true,
 			"7",
 		},
 		{
 			`
-	main(){return id(1,2,3,4,5,6)}
-id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
+	int main(){return id(1,2,3,4,5,6)}
+int id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
 `,
 			[]asm.Fin{},
 			true,
@@ -731,9 +731,9 @@ id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
 		},
 		{
 			`
-	main(){return id(1,2,3,4,5,6) - add(1, 2)}
-id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
-add(a, b) { return a + b}
+	int main(){return id(1,2,3,4,5,6) - add(1, 2)}
+int id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
+int add(a, b) { return a + b}
 `,
 			[]asm.Fin{},
 			true,
@@ -776,7 +776,7 @@ func TestGenerator(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"main(){return 1;}",
+			"int main(){return 1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -786,7 +786,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return 1+1;}",
+			"int main(){return 1+1;}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(1),
@@ -801,7 +801,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return (1+2);}",
+			"int main(){return (1+2);}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -816,7 +816,7 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 
-			"main(){return (1-(2));}",
+			"int main(){return (1-(2));}",
 			wrapInsts([]asm.Fin{
 				asm.I().Push().Val(1),
 				asm.I().Push().Val(2),
@@ -831,7 +831,7 @@ func TestGenerator(t *testing.T) {
 		},
 
 		{
-			"main() {return}",
+			"int main() {return}",
 			wrapInsts([]asm.Fin{}),
 			true,
 			"",

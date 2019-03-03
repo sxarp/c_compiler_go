@@ -336,7 +336,7 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 	body := bodyer(st)
 	prologue := prologuer(st)
 
-	return andId().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+	return andId().And(psr.Intd, false).And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
 		And(&prologue, true).And(psr.LBrc, false).And(&body, true).And(psr.RBrc, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 4)

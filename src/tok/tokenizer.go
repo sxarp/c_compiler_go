@@ -145,9 +145,10 @@ var TRBrc TokenType = TokenType{literal: "}"}
 var TIf TokenType = TokenType{literal: "if"}
 var TWhile TokenType = TokenType{literal: "while"}
 var TFor TokenType = TokenType{literal: "for"}
+var TIntd TokenType = TokenType{literal: "int"}
 
 var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
-	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc}
+	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc}
 
 func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 
