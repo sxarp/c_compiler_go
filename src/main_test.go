@@ -95,11 +95,11 @@ int main(){
 a = 2;
 return add(2, 3)+a;
 }
-int add(a, b){
+int add(int a, int b){
 c = 1;
 return a+b + sub(a, b) -c;
 }
-int sub(a,b){
+int sub(int a, int b){
 d = 4;
 return a-b + 4;}
 `)
@@ -110,7 +110,7 @@ int main(){
 x = 10;
 return fib(x);
 }
-int fib(x){
+int fib(int x){
 if (x == 1) { return 1;}
 if (x== 2) { return 2;}
 return fib(x-1) + fib(x-2);

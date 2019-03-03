@@ -316,7 +316,7 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 		asm.I().Mov().Rax().P().R9(),
 	}
 
-	argv := andId().And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+	argv := andId().And(psr.Intd, false).And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		seqNum := st.RefOf(nodes[0].Token.Val())
 
 		if seqNum >= 6 {

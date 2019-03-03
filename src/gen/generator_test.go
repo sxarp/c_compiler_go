@@ -650,7 +650,7 @@ func TestFuncDefiner(t *testing.T) {
 			"",
 		},
 		{
-			"int main(a){ return 22}",
+			"int main(int a){ return 22}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -678,7 +678,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"int main(){return id(11)}int id(a){return a}",
+			"int main(){return id(11)}int id(int a){return a}",
 			[]asm.Fin{
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
@@ -715,7 +715,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 			"11",
 		},
 		{
-			"int main(){return sub(11+1, 5)} int sub(a, b){return a - b}",
+			"int main(){return sub(11+1, 5)} int sub(int a, int b){return a - b}",
 			[]asm.Fin{},
 			true,
 			"7",
@@ -723,7 +723,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 		{
 			`
 	int main(){return id(1,2,3,4,5,6)}
-int id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
+int id(int a, int b, int c, int d, int e, int f){return a - b + c - d + e - f + 3}
 `,
 			[]asm.Fin{},
 			true,
@@ -732,8 +732,8 @@ int id(a, b, c, d, e, f){return a - b + c - d + e - f + 3}
 		{
 			`
 	int main(){return id(1,2,3,4,5,6) - add(1, 2)}
-int id(a, b, c, d, e, f){return a - b + c - d + e - f + add(3, 4)}
-int add(a, b) { return a + b}
+int id(int a, int b, int c, int d, int e, int f){return a - b + c - d + e - f + add(3, 4)}
+int add(int a, int b) { return a + b}
 `,
 			[]asm.Fin{},
 			true,
