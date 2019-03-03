@@ -511,6 +511,55 @@ func TestIfer(t *testing.T) {
 
 }
 
+func TestWhiler(t *testing.T) {
+	for _, c := range []psrTestCase{
+		{
+			"while(0) { 1 }",
+			[]asm.Fin{
+				asm.I().Label("while_begin_0"),
+				asm.I().Push().Val(0),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rax().Val(0),
+				asm.I().Je("while_end_0"),
+				asm.I().Push().Val(1),
+				asm.I().Jmp("while_begin_0"),
+				asm.I().Label("while_end_0"),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, whiler(&numInt, &numInt), c)
+	}
+
+}
+
+func TestForer(t *testing.T) {
+	for _, c := range []psrTestCase{
+		{
+			"for(0;1;2) { 3 }",
+			[]asm.Fin{
+				asm.I().Push().Val(0),
+				asm.I().Pop().Rax(),
+				asm.I().Label("for_begin_0"),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rax().Val(0),
+				asm.I().Je("for_end_0"),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rax(),
+				asm.I().Push().Val(3),
+				asm.I().Jmp("for_begin_0"),
+				asm.I().Label("for_end_0"),
+			},
+			true,
+			"",
+		},
+	} {
+		compCode(t, forer(&numInt, &numInt), c)
+	}
+}
+
 func TestFuncCaller(t *testing.T) {
 
 	for _, c := range []psrTestCase{

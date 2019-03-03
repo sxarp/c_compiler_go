@@ -37,6 +37,7 @@ func TestIns(t *testing.T) {
 	h.ExpectEq(t, "        mov r9, r8", I().Mov().R9().R8().str())
 	h.ExpectEq(t, "main:", I().Label("main").str())
 	h.ExpectEq(t, "        je .Lend", I().Je(".Lend").str())
+	h.ExpectEq(t, "        jmp .Lend", I().Jmp(".Lend").str())
 }
 
 func TestFinEq(t *testing.T) {

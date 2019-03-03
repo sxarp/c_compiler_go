@@ -161,6 +161,12 @@ func (i Ini) Je(name string) Fin {
 	return Fin{i: i.i}
 }
 
+func (i Ini) Jmp(name string) Fin {
+	i.i.ope = Ope{i: "jmp"}
+	i.i.toS = func() string { return name }
+	return Fin{i: i.i}
+}
+
 func (i Ini) Label(name string) Fin {
 	i.i.label = name
 	return Fin{i: i.i}

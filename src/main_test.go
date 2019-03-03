@@ -116,4 +116,48 @@ if (x== 2) { return 2;}
 return fib(x-1) + fib(x-2);
 }
 `)
+
+	compareMF(t, "10",
+		`
+main(){
+a = 10;
+b = 0;
+while (a) {
+a = a -1;
+b = b + 1;
+}
+return b;
+}
+`)
+
+	compareMF(t, "89",
+		`
+main(){
+n = 0;
+a = 1;
+b = 1;
+
+while (n != 9) {
+n = n+1;
+c = a;
+a = a + b;
+b = c;
+}
+return a;
+}
+`)
+
+	compareMF(t, "89",
+		`
+main(){
+a = 1;
+b = 1;
+for (n = 0; n != 9; n=n+1) {
+c = a;
+a = a + b;
+b = c;
+}
+return a;
+}
+`)
 }
