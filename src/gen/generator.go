@@ -116,7 +116,7 @@ func lvIdenter(st *SymTable) psr.Parser {
 	return andId().And(psr.Var, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 1)
-			offSet := wordSize * (1 + st.RefOf(nodes[0].Token.Val()))
+			offSet := st.AddrOf(nodes[0].Token.Val())
 			code.
 				Ins(asm.I().Mov().Rax().Rbp()).
 				Ins(asm.I().Sub().Rax().Val(offSet)).
@@ -334,7 +334,7 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 			panic("too many arguments")
 		}
 
-		offSet := wordSize * (1 + seqNum)
+		offSet := st.AddrOf(symbol)
 		code.
 			Ins(asm.I().Mov().Rax().Rbp()).
 			Ins(asm.I().Sub().Rax().Val(offSet)).
