@@ -111,30 +111,73 @@ var epilogue psr.Parser = andId().SetEval(
 
 var popRax psr.Parser = andId().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
 
-func lvIdenter(st *SymTable) psr.Parser {
-	return andId().And(psr.Var, true).SetEval(
+func loadValer(st *SymTable, sym *string) psr.Parser {
+	return andId().SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 1)
-			offSet := st.AddrOf(nodes[0].Token.Val())
 			code.
 				Ins(asm.I().Mov().Rax().Rbp()).
-				Ins(asm.I().Sub().Rax().Val(offSet)).
+				Ins(asm.I().Sub().Rax().Val(st.AddrOf(*sym))).
 				Ins(asm.I().Push().Rax())
-
 		})
 }
 
-func rvIdenter(lvIdent *psr.Parser) psr.Parser {
-	return andId().And(lvIdent, true).SetEval(
+func lvIdenter(st *SymTable) psr.Parser {
+	var sym string
+	loadVal := loadValer(st, &sym)
+
+	return andId().And(psr.Var, true).And(&loadVal, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 1)
-			nodes[0].Eval(code)
-			code.
-				Ins(asm.I().Pop().Rax()).
-				Ins(asm.I().Mov().Rax().Rax().P()).
-				Ins(asm.I().Push().Rax())
+			checkNodeCount(nodes, 2)
+			sym = nodes[0].Token.Val()
+			nodes[1].Eval(code)
+		})
+}
+
+func rvAddrer(lvIdent *psr.Parser) psr.Parser {
+	return andId().And(psr.Amp, false).And(lvIdent, true)
+}
+
+var deRefer psr.Parser = andId().SetEval(func(nodes []*ast.AST, code asm.Code) {
+	code.
+		Ins(asm.I().Pop().Rax()).
+		Ins(asm.I().Mov().Rax().Rax().P()).
+		Ins(asm.I().Push().Rax())
+})
+
+func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
+	astr := andId().And(psr.Mul, false).And(&deRefer, true)
+
+	var deRefCount int
+	astrs := andId().Rep(&astr).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			deRefCount = len(nodes)
+
+			for _, node := range nodes {
+				node.Eval(code)
+			}
 		})
 
+	var sym string
+	loadVal := loadValer(st, &sym)
+
+	return andId().And(&astrs, true).And(psr.Var, true).And(&loadVal, true).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			sym = nodes[1].Token.Val()
+			symType := st.TypeOf(sym)
+
+			nodes[2].Eval(code)
+			nodes[0].Eval(code)
+
+			for i := 0; i < deRefCount; i++ {
+				if _, ok := symType.DeRef(); !ok {
+					panic(fmt.Sprintf("Invalid pointer variable dereference of %s.", sym))
+				}
+			}
+		})
+}
+
+func rvIdenter(ptrDeRef *psr.Parser) psr.Parser {
+	return andId().And(ptrDeRef, true).And(&deRefer, true)
 }
 
 func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
@@ -383,10 +426,14 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 func Generator() psr.Parser {
 	body := func(st *SymTable) psr.Parser {
 		lvIdent := lvIdenter(st)
-		rvIdent := rvIdenter(&lvIdent)
+		ptrDeRef := ptrDeRefer(st, &lvIdent)
+
+		rvAddr := rvAddrer(&lvIdent)
+		rvIdent := rvIdenter(&ptrDeRef)
+		rvVal := orId().Or(&rvAddr).Or(&rvIdent)
 
 		var term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
-		num := orId().Or(&numInt).Or(&call).Or(&rvIdent)
+		num := orId().Or(&numInt).Or(&call).Or(&rvVal)
 
 		eqs = eqneqs(&adds)
 		adds = addsubs(&muls)
@@ -395,7 +442,7 @@ func Generator() psr.Parser {
 		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 		term = orId().Or(&num).Or(&parTerm)
 
-		assign := assigner(&lvIdent, &expr)
+		assign := assigner(&ptrDeRef, &expr)
 		expr = orId().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		semi := andId().And(&expr, true).And(psr.Semi, false)

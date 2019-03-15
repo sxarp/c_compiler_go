@@ -170,4 +170,15 @@ b = c;
 return a;
 }
 `)
+
+	compareMF(t, "9",
+		`
+int main(){
+int a; int *b; int **c;
+a = 3;
+b = &a;
+c = &b;
+return a + *b + **c;
+}
+`)
 }

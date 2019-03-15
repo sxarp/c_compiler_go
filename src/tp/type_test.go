@@ -20,3 +20,17 @@ func TestAddUnit(t *testing.T) {
 	h.ExpectEq(t, Int.AddUnit(), 1)
 	h.ExpectEq(t, Int.Ptr().AddUnit(), 8)
 }
+
+func TestDeRef(t *testing.T) {
+	tipe, ok := Int.Ptr().Ptr().DeRef()
+	h.ExpectEq(t, true, ok)
+
+	tipe, ok = tipe.DeRef()
+	h.ExpectEq(t, true, ok)
+
+	tipe, ok = tipe.DeRef()
+	h.ExpectEq(t, false, ok)
+
+	tipe, ok = tipe.DeRef()
+	h.ExpectEq(t, false, ok)
+}

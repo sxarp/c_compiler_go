@@ -344,6 +344,41 @@ func TestRvIdent(t *testing.T) {
 
 }
 
+func TestPtrDeRefer(t *testing.T) {
+	st := newST()
+	st.DecOf("a", tp.Int)
+	st.DecOf("ap", tp.Int.Ptr())
+
+	for _, c := range []psrTestCase{
+		{
+			"a",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(st.AddrOf("a")),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"*ap",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(st.AddrOf("ap")),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+	} {
+		lvIdent := lvIdenter(st)
+		compCode(t, ptrDeRefer(st, &lvIdent), c)
+	}
+}
+
 func TestAssigner(t *testing.T) {
 
 	for _, c := range []psrTestCase{

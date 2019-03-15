@@ -28,6 +28,15 @@ func (org Type) Ptr() Type {
 	return Type{ptrOf: &org}
 }
 
+func (org Type) DeRef() (Type, bool) {
+	if org.ptrOf != nil {
+		return *(org.ptrOf), true
+
+	} else {
+		return Type{}, false
+	}
+}
+
 func (tp Type) Size() int {
 	return 8
 }
