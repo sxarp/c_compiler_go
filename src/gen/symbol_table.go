@@ -7,56 +7,73 @@ import (
 )
 
 type Var struct {
-	addr int
-	seq  int
+	name string
 	tp   tp.Type
 }
 
+type varProj struct {
+	addr int
+	tp   tp.Type
+	seq  int
+}
+
 type SymTable struct {
-	table map[string]Var
+	vars []Var
 }
 
 func newST() *SymTable {
-	return &SymTable{make(map[string]Var)}
+	return &SymTable{}
+}
+
+const bpSize = 8
+
+func (st *SymTable) find(name string) (*varProj, bool) {
+	addr := bpSize
+	for i, v := range st.vars {
+		if v.name == name {
+			return &varProj{seq: i, tp: v.tp, addr: addr}, true
+		}
+		addr += v.tp.Size()
+	}
+
+	return nil, false
 }
 
 func (st *SymTable) Count() int {
-	return len(st.table)
+	return len(st.vars)
 }
 
 func (st *SymTable) Allocated() int {
 	alloc := 0
-	for _, val := range st.table {
+	for _, val := range st.vars {
 		alloc += val.tp.Size()
 	}
 
 	return alloc
 }
 
-const bpSize = 8
-
 // Get addr of symbol.
-func (st *SymTable) AddrOf(s string) int {
-	if ref, ok := st.table[s]; ok {
-		return ref.addr + bpSize
+func (st *SymTable) AddrOf(name string) int {
+	if ref, ok := st.find(name); ok {
+		return ref.addr
 	} else {
-		panic(fmt.Sprintf("%s is not declared.", s))
+		panic(fmt.Sprintf("%s is not declared.", name))
 	}
 }
 
-func (st *SymTable) RefOf(s string) int {
-	if ref, ok := st.table[s]; ok {
+func (st *SymTable) RefOf(name string) int {
+	if ref, ok := st.find(name); ok {
 		return ref.seq
 	} else {
-		panic(fmt.Sprintf("%s is not declared.", s))
+		panic(fmt.Sprintf("%s is not declared.", name))
 	}
 }
 
 // Declare symbol.
-func (st *SymTable) DecOf(s string, t tp.Type) {
-	if _, ok := st.table[s]; ok {
-		panic(fmt.Sprintf("%s is already declared.", s))
+func (st *SymTable) DecOf(name string, t tp.Type) {
+	if _, ok := st.find(name); ok {
+		panic(fmt.Sprintf("%s is already declared.", name))
 	} else {
-		st.table[s] = Var{addr: st.Allocated(), tp: t, seq: st.Count()}
+		st.vars = append(st.vars, Var{tp: t, name: name})
 	}
 }
