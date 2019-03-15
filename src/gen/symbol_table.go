@@ -69,6 +69,14 @@ func (st *SymTable) RefOf(name string) int {
 	}
 }
 
+func (st *SymTable) TypeOf(name string) tp.Type {
+	if ref, ok := st.find(name); ok {
+		return ref.tp
+	} else {
+		panic(fmt.Sprintf("%s is not declared.", name))
+	}
+}
+
 // Declare symbol.
 func (st *SymTable) DecOf(name string, t tp.Type) {
 	if _, ok := st.find(name); ok {

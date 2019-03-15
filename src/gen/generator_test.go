@@ -292,7 +292,7 @@ func TestLvIdenter(t *testing.T) {
 			"a",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
 			},
 			true,
@@ -304,7 +304,7 @@ func TestLvIdenter(t *testing.T) {
 			"b",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 2),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 2),
 				asm.I().Push().Rax(),
 			},
 			true,
@@ -326,7 +326,7 @@ func TestRvIdent(t *testing.T) {
 			"a",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rax().Rax().P(),
@@ -342,6 +342,41 @@ func TestRvIdent(t *testing.T) {
 		compCode(t, rvIdenter(&lvIdent), c)
 	}
 
+}
+
+func TestPtrDeRefer(t *testing.T) {
+	st := newST()
+	st.DecOf("a", tp.Int)
+	st.DecOf("ap", tp.Int.Ptr())
+
+	for _, c := range []psrTestCase{
+		{
+			"a",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(st.AddrOf("a")),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"*ap",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(st.AddrOf("ap")),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+	} {
+		lvIdent := lvIdenter(st)
+		compCode(t, ptrDeRefer(st, &lvIdent), c)
+	}
 }
 
 func TestAssigner(t *testing.T) {
@@ -366,7 +401,9 @@ func TestAssigner(t *testing.T) {
 
 }
 
-func TestIntDeclarer(t *testing.T) {
+func TestVarDeclarer(t *testing.T) {
+	varType := tp.Int
+
 	for _, c := range []psrTestCase{
 		{
 			"int a;",
@@ -374,8 +411,23 @@ func TestIntDeclarer(t *testing.T) {
 			true,
 			"",
 		},
+		{
+			"int *a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+		{
+			"int **a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
 	} {
-		compCode(t, intDeclarer(newST()), c)
+		st := newST()
+		compCode(t, varDeclarer(st), c)
+		h.ExpectEq(t, true, st.TypeOf("a").Eq(varType))
+		varType = varType.Ptr()
 	}
 }
 
@@ -660,7 +712,7 @@ func TestFuncDefiner(t *testing.T) {
 				asm.I().Label("hoge"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Sub().Rsp().Val(tp.Int.Size() * 0),
 				asm.I().Mov().Rsp().Rbp(),
 				asm.I().Pop().Rbp(),
 				asm.I().Ret(),
@@ -674,9 +726,9 @@ func TestFuncDefiner(t *testing.T) {
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Sub().Rsp().Val(tp.Int.Size() * 1),
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Mov().Rax().P().Rdi(),
 				asm.I().Push().Val(22),
 				asm.I().Pop().Rax(),
@@ -702,7 +754,7 @@ func TestFuncDefineAndCall(t *testing.T) {
 				asm.I().Label("main"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 0),
+				asm.I().Sub().Rsp().Val(tp.Int.Size() * 0),
 				asm.I().Push().Val(11),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rdi().Rax(),
@@ -715,12 +767,12 @@ func TestFuncDefineAndCall(t *testing.T) {
 				asm.I().Label("id"),
 				asm.I().Push().Rbp(),
 				asm.I().Mov().Rbp().Rsp(),
-				asm.I().Sub().Rsp().Val(wordSize * 1),
+				asm.I().Sub().Rsp().Val(tp.Int.Size() * 1),
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Mov().Rax().P().Rdi(),
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(wordSize * 1),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rax().Rax().P(),
@@ -779,7 +831,7 @@ func wrapInsts(insts []asm.Fin) []asm.Fin {
 			asm.I().Label("main"),
 			asm.I().Push().Rbp(),
 			asm.I().Mov().Rbp().Rsp(),
-			asm.I().Sub().Rsp().Val(wordSize * 0),
+			asm.I().Sub().Rsp().Val(tp.Int.Size() * 0),
 		},
 		insts...),
 		[]asm.Fin{
