@@ -13,8 +13,6 @@ var orId = psr.OrId
 var andId = psr.AndId
 var null = andId()
 
-const wordSize = 8
-
 func checkNodeCount(nodes []*ast.AST, count int) {
 	if l := len(nodes); l != count {
 		panic(fmt.Sprintf("The number of nodes must be %d, got %d.", count, l))
@@ -99,7 +97,7 @@ func prologuer(st *SymTable) psr.Parser {
 		code.
 			Ins(asm.I().Push().Rbp()).
 			Ins(asm.I().Mov().Rbp().Rsp()).
-			Ins(asm.I().Sub().Rsp().Val(wordSize * st.Count()))
+			Ins(asm.I().Sub().Rsp().Val(st.Allocated()))
 	})
 }
 
