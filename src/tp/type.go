@@ -27,3 +27,18 @@ func (lhs Type) Eq(rhs Type) bool {
 func (org Type) Ptr() Type {
 	return Type{ptrOf: &org}
 }
+
+func (tp Type) Size() int {
+	return 8
+}
+
+func (tp Type) AddUnit() int {
+	switch {
+	case tp.Eq(Int):
+		return 1
+	case tp.ptrOf != nil:
+		return tp.ptrOf.Size()
+	default:
+		panic("AddUnit cannot be determined.")
+	}
+}

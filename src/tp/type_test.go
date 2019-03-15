@@ -15,3 +15,8 @@ func TestEq(t *testing.T) {
 	h.ExpectEq(t, Int.Ptr().Eq(Int.Ptr().Ptr()), false)
 	h.ExpectEq(t, Int.Ptr().Ptr().Eq(Int.Ptr().Ptr()), true)
 }
+
+func TestAddUnit(t *testing.T) {
+	h.ExpectEq(t, Int.AddUnit(), 1)
+	h.ExpectEq(t, Int.Ptr().AddUnit(), 8)
+}
