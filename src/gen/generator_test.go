@@ -8,6 +8,7 @@ import (
 	"github.com/sxarp/c_compiler_go/src/h"
 	"github.com/sxarp/c_compiler_go/src/psr"
 	"github.com/sxarp/c_compiler_go/src/tok"
+	"github.com/sxarp/c_compiler_go/src/tp"
 )
 
 type psrTestCase struct {
@@ -243,8 +244,8 @@ func TestProloguer(t *testing.T) {
 		},
 	} {
 		st := newST()
-		st.DecOf("0")
-		st.DecOf("1")
+		st.DecOf("0", tp.Int)
+		st.DecOf("1", tp.Int)
 		compCode(t, prologuer(st), c)
 	}
 }
@@ -311,8 +312,8 @@ func TestLvIdenter(t *testing.T) {
 		},
 	} {
 		st := newST()
-		st.DecOf("a")
-		st.DecOf("b")
+		st.DecOf("a", tp.Int)
+		st.DecOf("b", tp.Int)
 		compCode(t, lvIdenter(st), c)
 	}
 
@@ -336,7 +337,7 @@ func TestRvIdent(t *testing.T) {
 		},
 	} {
 		st := newST()
-		st.DecOf("a")
+		st.DecOf("a", tp.Int)
 		lvIdent := lvIdenter(st)
 		compCode(t, rvIdenter(&lvIdent), c)
 	}
