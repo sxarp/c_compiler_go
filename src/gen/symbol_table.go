@@ -53,10 +53,10 @@ func (st *SymTable) RefOf(s string) int {
 }
 
 // Declare symbol.
-func (st *SymTable) DecOf(s string) {
+func (st *SymTable) DecOf(s string, t tp.Type) {
 	if _, ok := st.table[s]; ok {
 		panic(fmt.Sprintf("%s is already declared.", s))
 	} else {
-		st.table[s] = Var{addr: st.Allocated(), tp: tp.Int, seq: st.Count()}
+		st.table[s] = Var{addr: st.Allocated(), tp: t, seq: st.Count()}
 	}
 }

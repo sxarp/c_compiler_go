@@ -6,6 +6,7 @@ import (
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/psr"
+	"github.com/sxarp/c_compiler_go/src/tp"
 )
 
 var orId = psr.OrId
@@ -158,7 +159,7 @@ func intDeclarer(st *SymTable) psr.Parser {
 	return andId().And(psr.Intd, false).And(psr.Var, true).And(psr.Semi, false).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 1)
-			st.DecOf(nodes[0].Token.Val())
+			st.DecOf(nodes[0].Token.Val(), tp.Int)
 		})
 }
 
@@ -327,7 +328,7 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 	argv := andId().And(psr.Intd, false).And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		symbol := nodes[0].Token.Val()
 
-		st.DecOf(symbol)
+		st.DecOf(symbol, tp.Int)
 		seqNum := st.RefOf(symbol)
 
 		if seqNum >= 6 {
