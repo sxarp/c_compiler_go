@@ -25,6 +25,7 @@ var If *Parser = tokenTypeToPsr(&tok.TIf)
 var For *Parser = tokenTypeToPsr(&tok.TFor)
 var While *Parser = tokenTypeToPsr(&tok.TWhile)
 var Intd *Parser = tokenTypeToPsr(&tok.TIntd)
+var Amp *Parser = tokenTypeToPsr(&tok.TAmp)
 
 // To show informative error messages.
 func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {

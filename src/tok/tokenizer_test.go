@@ -93,6 +93,7 @@ func TestTokenizer(t *testing.T) {
 	expectTokens(t, Tokenize, "{ifa", []string{"{", "if", "a", "EOF"})
 	expectTokens(t, Tokenize, ")whilefora", []string{")", "while", "for", "a", "EOF"})
 	expectTokens(t, Tokenize, ")whileforint", []string{")", "while", "for", "int", "EOF"})
+	expectTokens(t, Tokenize, "a&b", []string{"a", "&", "b", "EOF"})
 
 	tokens := Tokenize(`abc 123
 12 abc
