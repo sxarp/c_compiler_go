@@ -366,7 +366,9 @@ func TestAssigner(t *testing.T) {
 
 }
 
-func TestIntDeclarer(t *testing.T) {
+func TestVarDeclarer(t *testing.T) {
+	varType := tp.Int
+
 	for _, c := range []psrTestCase{
 		{
 			"int a;",
@@ -374,8 +376,23 @@ func TestIntDeclarer(t *testing.T) {
 			true,
 			"",
 		},
+		{
+			"int *a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+		{
+			"int **a;",
+			[]asm.Fin{},
+			true,
+			"",
+		},
 	} {
-		compCode(t, intDeclarer(newST()), c)
+		st := newST()
+		compCode(t, varDeclarer(st), c)
+		h.ExpectEq(t, true, st.TypeOf("a").Eq(varType))
+		varType = varType.Ptr()
 	}
 }
 

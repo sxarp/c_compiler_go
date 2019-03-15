@@ -153,11 +153,23 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 		})
 }
 
-func intDeclarer(st *SymTable) psr.Parser {
-	return andId().And(psr.Intd, false).And(psr.Var, true).And(psr.Semi, false).SetEval(
+func varDeclarer(st *SymTable) psr.Parser {
+	var varType = tp.Int
+	vp := &varType
+
+	astrs := andId().Rep(psr.Mul).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 1)
-			st.DecOf(nodes[0].Token.Val(), tp.Int)
+			for _ = range nodes {
+				*vp = (*vp).Ptr()
+			}
+		})
+
+	return andId().And(psr.Intd, false).And(&astrs, true).And(psr.Var, true).And(psr.Semi, false).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[0].Eval(nil)
+
+			st.DecOf(nodes[1].Token.Val(), varType)
 		})
 }
 
@@ -387,7 +399,7 @@ func Generator() psr.Parser {
 		expr = orId().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		semi := andId().And(&expr, true).And(psr.Semi, false)
-		intDeclare := intDeclarer(st)
+		intDeclare := varDeclarer(st)
 
 		line := andId().And(&semi, true).And(&popRax, true)
 		ret := returner(&semi)
