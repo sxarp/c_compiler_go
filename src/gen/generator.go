@@ -116,7 +116,7 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 		func(nodes []*ast.AST, code asm.Code) {
 			code.
 				Ins(asm.I().Mov().Rax().Rbp()).
-				Ins(asm.I().Sub().Rax().Val(st.AddrOf(*sym))).
+				Ins(asm.I().Sub().Rax().Val(st.RefOf(*sym).Addr)).
 				Ins(asm.I().Push().Rax())
 		})
 }
@@ -163,7 +163,7 @@ func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
 	return andId().And(&astrs, true).And(psr.Var, true).And(&loadVal, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			sym = nodes[1].Token.Val()
-			symType := st.TypeOf(sym)
+			symType := st.RefOf(sym).Type
 
 			nodes[2].Eval(code)
 			nodes[0].Eval(code)
@@ -382,13 +382,13 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 		symbol := nodes[0].Token.Val()
 
 		st.DecOf(symbol, tp.Int)
-		seqNum := st.RefOf(symbol)
+		seqNum := st.RefOf(symbol).Seq
 
 		if seqNum >= 6 {
 			panic("too many arguments")
 		}
 
-		offSet := st.AddrOf(symbol)
+		offSet := st.RefOf(symbol).Addr
 		code.
 			Ins(asm.I().Mov().Rax().Rbp()).
 			Ins(asm.I().Sub().Rax().Val(offSet)).

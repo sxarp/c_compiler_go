@@ -354,7 +354,7 @@ func TestPtrDeRefer(t *testing.T) {
 			"a",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(st.AddrOf("a")),
+				asm.I().Sub().Rax().Val(st.RefOf("a").Addr),
 				asm.I().Push().Rax(),
 			},
 			true,
@@ -364,7 +364,7 @@ func TestPtrDeRefer(t *testing.T) {
 			"*ap",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(st.AddrOf("ap")),
+				asm.I().Sub().Rax().Val(st.RefOf("ap").Addr),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rax().Rax().P(),
@@ -426,7 +426,7 @@ func TestVarDeclarer(t *testing.T) {
 	} {
 		st := newST()
 		compCode(t, varDeclarer(st, &null), c)
-		h.ExpectEq(t, true, st.TypeOf("a").Eq(varType))
+		h.ExpectEq(t, true, st.RefOf("a").Type.Eq(varType))
 		varType = varType.Ptr()
 	}
 }
