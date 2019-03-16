@@ -810,12 +810,27 @@ int add(int a, int b) { return a + b}
 			true,
 			"1",
 		},
+		{
+			`
+	int main(){return id(1, 2, 3)}
+int id(int a, int b, int c){return idp(&a, &b, c)}
+int idp(int *a, int *b, int c) { return *a + *b + c}
+`,
+			[]asm.Fin{},
+			true,
+			"6",
+		},
 	} {
 		body := func(st *SymTable) psr.Parser {
 			lvIdent := lvIdenter(st)
-			rvIdent := rvIdenter(&lvIdent)
+			ptrDeRef := ptrDeRefer(st, &lvIdent)
+
+			rvAddr := rvAddrer(&lvIdent)
+			rvIdent := rvIdenter(&ptrDeRef)
+			rvVal := orId().Or(&rvAddr).Or(&rvIdent)
+
 			var caller psr.Parser
-			callerOrIdentOrNum := orId().Or(&caller).Or(&rvIdent).Or(&numInt)
+			callerOrIdentOrNum := orId().Or(&caller).Or(&rvVal).Or(&numInt)
 			adds := addsubs(&callerOrIdentOrNum)
 			caller = funcCaller(&adds)
 			return returner(&adds)

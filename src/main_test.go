@@ -181,4 +181,16 @@ c = &b;
 return a + *b + **c;
 }
 `)
+
+	compareMF(t, "2",
+		`
+int main(){
+int a;
+a = 0;
+inc(&a);
+inc(&a);
+return a;
+}
+int inc(int *x) { *x = *x + 1; return 0;}
+`)
 }

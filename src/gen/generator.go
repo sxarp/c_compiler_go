@@ -378,21 +378,21 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 		asm.I().Mov().Rax().P().R9(),
 	}
 
-	argv := andId().And(psr.Intd, false).And(psr.Var, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
-		symbol := nodes[0].Token.Val()
+	varDeclare := varDeclarer(st, &null)
+	argv := andId().And(&varDeclare, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 
-		st.DecOf(symbol, tp.Int)
-		seqNum := st.RefOf(symbol).Seq
+		nodes[0].Eval(code)
 
-		if seqNum >= 6 {
+		v := st.Last()
+
+		if v.Seq >= 6 {
 			panic("too many arguments")
 		}
 
-		offSet := st.RefOf(symbol).Addr
 		code.
 			Ins(asm.I().Mov().Rax().Rbp()).
-			Ins(asm.I().Sub().Rax().Val(offSet)).
-			Ins(argRegs[seqNum])
+			Ins(asm.I().Sub().Rax().Val(v.Addr)).
+			Ins(argRegs[v.Seq])
 	})
 
 	commed := andId().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)
