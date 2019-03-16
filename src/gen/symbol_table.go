@@ -60,6 +60,14 @@ func (st *SymTable) RefOf(name string) *VarProj {
 	}
 }
 
+func (st *SymTable) Last() *VarProj {
+	if v, ok := st.find(st.vars[len(st.vars)-1].name); ok {
+		return v
+	} else {
+		panic("SymTable is empty.")
+	}
+}
+
 // Declare symbol.
 func (st *SymTable) DecOf(name string, t tp.Type) {
 	if _, ok := st.find(name); ok {

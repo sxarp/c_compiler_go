@@ -18,4 +18,5 @@ func TestDecOf(t *testing.T) {
 	h.ExpectEq(t, 24, st.RefOf("c").Addr)
 	h.ExpectEq(t, 3, st.Count())
 	h.ExpectEq(t, 24, st.Allocated())
+	h.ExpectEq(t, 24, st.Last().Addr)
 }
