@@ -354,7 +354,7 @@ func TestPtrDeRefer(t *testing.T) {
 			"a",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(st.AddrOf("a")),
+				asm.I().Sub().Rax().Val(st.RefOf("a").Addr),
 				asm.I().Push().Rax(),
 			},
 			true,
@@ -364,7 +364,7 @@ func TestPtrDeRefer(t *testing.T) {
 			"*ap",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(st.AddrOf("ap")),
+				asm.I().Sub().Rax().Val(st.RefOf("ap").Addr),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rax().Rax().P(),
@@ -406,27 +406,27 @@ func TestVarDeclarer(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"int a;",
+			"int a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 		{
-			"int *a;",
+			"int *a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 		{
-			"int **a;",
+			"int **a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 	} {
 		st := newST()
-		compCode(t, varDeclarer(st), c)
-		h.ExpectEq(t, true, st.TypeOf("a").Eq(varType))
+		compCode(t, varDeclarer(st, &null), c)
+		h.ExpectEq(t, true, st.RefOf("a").Type.Eq(varType))
 		varType = varType.Ptr()
 	}
 }
@@ -810,12 +810,27 @@ int add(int a, int b) { return a + b}
 			true,
 			"1",
 		},
+		{
+			`
+	int main(){return id(1, 2, 3)}
+int id(int a, int b, int c){return idp(&a, &b, c)}
+int idp(int *a, int *b, int c) { return *a + *b + c}
+`,
+			[]asm.Fin{},
+			true,
+			"6",
+		},
 	} {
 		body := func(st *SymTable) psr.Parser {
 			lvIdent := lvIdenter(st)
-			rvIdent := rvIdenter(&lvIdent)
+			ptrDeRef := ptrDeRefer(st, &lvIdent)
+
+			rvAddr := rvAddrer(&lvIdent)
+			rvIdent := rvIdenter(&ptrDeRef)
+			rvVal := orId().Or(&rvAddr).Or(&rvIdent)
+
 			var caller psr.Parser
-			callerOrIdentOrNum := orId().Or(&caller).Or(&rvIdent).Or(&numInt)
+			callerOrIdentOrNum := orId().Or(&caller).Or(&rvVal).Or(&numInt)
 			adds := addsubs(&callerOrIdentOrNum)
 			caller = funcCaller(&adds)
 			return returner(&adds)

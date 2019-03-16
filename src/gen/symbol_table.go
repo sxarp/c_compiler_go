@@ -11,10 +11,10 @@ type Var struct {
 	tp   tp.Type
 }
 
-type varProj struct {
-	addr int
-	tp   tp.Type
-	seq  int
+type VarProj struct {
+	Addr int
+	Type tp.Type
+	Seq  int
 }
 
 type SymTable struct {
@@ -27,11 +27,11 @@ func newST() *SymTable {
 
 const bpSize = 8
 
-func (st *SymTable) find(name string) (*varProj, bool) {
+func (st *SymTable) find(name string) (*VarProj, bool) {
 	addr := bpSize
 	for i, v := range st.vars {
 		if v.name == name {
-			return &varProj{seq: i, tp: v.tp, addr: addr}, true
+			return &VarProj{Seq: i, Type: v.tp, Addr: addr}, true
 		}
 		addr += v.tp.Size()
 	}
@@ -52,28 +52,19 @@ func (st *SymTable) Allocated() int {
 	return alloc
 }
 
-// Get addr of symbol.
-func (st *SymTable) AddrOf(name string) int {
+func (st *SymTable) RefOf(name string) *VarProj {
 	if ref, ok := st.find(name); ok {
-		return ref.addr
+		return ref
 	} else {
 		panic(fmt.Sprintf("%s is not declared.", name))
 	}
 }
 
-func (st *SymTable) RefOf(name string) int {
-	if ref, ok := st.find(name); ok {
-		return ref.seq
+func (st *SymTable) Last() *VarProj {
+	if v, ok := st.find(st.vars[len(st.vars)-1].name); ok {
+		return v
 	} else {
-		panic(fmt.Sprintf("%s is not declared.", name))
-	}
-}
-
-func (st *SymTable) TypeOf(name string) tp.Type {
-	if ref, ok := st.find(name); ok {
-		return ref.tp
-	} else {
-		panic(fmt.Sprintf("%s is not declared.", name))
+		panic("SymTable is empty.")
 	}
 }
 
