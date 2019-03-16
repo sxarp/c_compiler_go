@@ -406,26 +406,26 @@ func TestVarDeclarer(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-			"int a;",
+			"int a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 		{
-			"int *a;",
+			"int *a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 		{
-			"int **a;",
+			"int **a",
 			[]asm.Fin{},
 			true,
 			"",
 		},
 	} {
 		st := newST()
-		compCode(t, varDeclarer(st), c)
+		compCode(t, varDeclarer(st, &null), c)
 		h.ExpectEq(t, true, st.TypeOf("a").Eq(varType))
 		varType = varType.Ptr()
 	}
