@@ -432,12 +432,10 @@ func Generator() psr.Parser {
 		rvIdent := rvIdenter(&ptrDeRef)
 		rvVal := orId().Or(&rvAddr).Or(&rvIdent)
 
-		var term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
-		num := orId().Or(&numInt).Or(&call).Or(&rvVal)
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
 
-		eqs = eqneqs(&adds)
-		adds = addsubs(&muls)
-		muls = muldivs(&term)
+		num = orId().Or(&numInt).Or(&call).Or(&rvVal)
+		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
 
 		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 		term = orId().Or(&num).Or(&parTerm)
@@ -448,15 +446,12 @@ func Generator() psr.Parser {
 		semi := andId().And(&expr, true).And(psr.Semi, false)
 		varDeclare := varDeclarer(st, psr.Semi)
 
-		line := andId().And(&semi, true).And(&popRax, true)
-		ret := returner(&semi)
+		line, ret := andId().And(&semi, true).And(&popRax, true), returner(&semi)
 
 		body := orId().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&varDeclare).Or(&line)
 		bodies := andId().Rep(&body)
 
-		ifex = ifer(&expr, &bodies)
-		forex = forer(&expr, &bodies)
-		while = whiler(&expr, &bodies)
+		ifex, forex, while = ifer(&expr, &bodies), forer(&expr, &bodies), whiler(&expr, &bodies)
 
 		return andId().And(&bodies, true)
 	}
