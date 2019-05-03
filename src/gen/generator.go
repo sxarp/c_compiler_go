@@ -121,6 +121,43 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 		})
 }
 
+func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
+	// a+1/ a+b
+	return andId().And(psr.Var, true).And(psr.Plus, false).And(addv, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 2)
+		val := st.RefOf(nodes[0].Token.Val())
+		size := val.Type.Size()
+
+		// load ptr
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(val.Addr)).
+			Ins(asm.I().Push().Rax())
+
+		// load value
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mov().Rax().Rax().P()).
+			Ins(asm.I().Push().Rax())
+
+		nodes[1].Eval(code)
+
+		// multiple by size
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mul().Val(size)).
+			Ins(asm.I().Push().Rax())
+
+		// add and push
+		code.
+			Ins(asm.I().Pop().Rdi()).
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Add().Rax().Rdi()).
+			Ins(asm.I().Push().Rax())
+
+	})
+}
+
 func lvIdenter(st *SymTable) psr.Parser {
 	var sym string
 	loadVal := loadValer(st, &sym)
