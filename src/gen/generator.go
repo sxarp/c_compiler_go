@@ -122,7 +122,6 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 }
 
 func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
-	// a+1/ a+b
 	return andId().And(psr.Var, true).And(psr.Plus, false).And(addv, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
 		val := st.RefOf(nodes[0].Token.Val())
@@ -140,16 +139,16 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 			Ins(asm.I().Mov().Rax().Rax().P()).
 			Ins(asm.I().Push().Rax())
 
-		// calc add val
+		// eval add val
 		nodes[1].Eval(code)
 
-		// multiple by size
+		// multiple add val by size
 		code.
 			Ins(asm.I().Pop().Rax()).
 			Ins(asm.I().Mul().Val(size)).
 			Ins(asm.I().Push().Rax())
 
-		// add and push
+		// add both values and push
 		code.
 			Ins(asm.I().Pop().Rdi()).
 			Ins(asm.I().Pop().Rax()).
