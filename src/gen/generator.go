@@ -140,6 +140,7 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 			Ins(asm.I().Mov().Rax().Rax().P()).
 			Ins(asm.I().Push().Rax())
 
+		// calc add val
 		nodes[1].Eval(code)
 
 		// multiple by size
@@ -154,7 +155,6 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 			Ins(asm.I().Pop().Rax()).
 			Ins(asm.I().Add().Rax().Rdi()).
 			Ins(asm.I().Push().Rax())
-
 	})
 }
 

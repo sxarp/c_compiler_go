@@ -284,6 +284,39 @@ func TestPopRax(t *testing.T) {
 	}
 }
 
+func TestPtrAdder(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"a+1",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rax(),
+				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Push().Rax(),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Mul().Val(8),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Add().Rax().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+	} {
+		st := newST()
+		st.DecOf("a", tp.Int)
+		compCode(t, ptrAdder(st, &numInt), c)
+	}
+
+}
+
 func TestLvIdenter(t *testing.T) {
 
 	for _, c := range []psrTestCase{
@@ -298,7 +331,6 @@ func TestLvIdenter(t *testing.T) {
 			true,
 			"",
 		},
-
 		{
 
 			"b",
