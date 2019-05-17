@@ -121,6 +121,45 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 		})
 }
 
+func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
+	return andId().And(psr.Mul, false).And(psr.LPar, false).
+		And(psr.Var, true).And(psr.Plus, false).And(addv, true).
+		And(psr.RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 2)
+		val := st.RefOf(nodes[0].Token.Val())
+		size := val.Type.Size()
+
+		// load ptr
+		code.
+			Ins(asm.I().Mov().Rax().Rbp()).
+			Ins(asm.I().Sub().Rax().Val(val.Addr)).
+			Ins(asm.I().Push().Rax())
+
+		// load value
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mov().Rax().Rax().P()).
+			Ins(asm.I().Push().Rax())
+
+		// eval add val
+		nodes[1].Eval(code)
+
+		// multiple add val by size
+		code.
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Mov().Rdi().Val(size)).
+			Ins(asm.I().Mul().Rdi()).
+			Ins(asm.I().Push().Rax())
+
+		// add both values and push
+		code.
+			Ins(asm.I().Pop().Rdi()).
+			Ins(asm.I().Pop().Rax()).
+			Ins(asm.I().Add().Rax().Rdi()).
+			Ins(asm.I().Push().Rax())
+	})
+}
+
 func lvIdenter(st *SymTable) psr.Parser {
 	var sym string
 	loadVal := loadValer(st, &sym)
@@ -432,12 +471,14 @@ func Generator() psr.Parser {
 		rvIdent := rvIdenter(&ptrDeRef)
 		rvVal := orId().Or(&rvAddr).Or(&rvIdent)
 
-		var term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
-		num := orId().Or(&numInt).Or(&call).Or(&rvVal)
+		ptrAddVal := orId().Or(&numInt).Or(&rvIdent)
+		ptrAdd := ptrAdder(st, &ptrAddVal)
+		rvPtrAdder := andId().And(&ptrAdd, true).And(&deRefer, true)
 
-		eqs = eqneqs(&adds)
-		adds = addsubs(&muls)
-		muls = muldivs(&term)
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
+
+		num = orId().Or(&rvPtrAdder).Or(&numInt).Or(&call).Or(&rvVal)
+		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
 
 		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
 		term = orId().Or(&num).Or(&parTerm)
@@ -448,15 +489,12 @@ func Generator() psr.Parser {
 		semi := andId().And(&expr, true).And(psr.Semi, false)
 		varDeclare := varDeclarer(st, psr.Semi)
 
-		line := andId().And(&semi, true).And(&popRax, true)
-		ret := returner(&semi)
+		line, ret := andId().And(&semi, true).And(&popRax, true), returner(&semi)
 
 		body := orId().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&varDeclare).Or(&line)
 		bodies := andId().Rep(&body)
 
-		ifex = ifer(&expr, &bodies)
-		forex = forer(&expr, &bodies)
-		while = whiler(&expr, &bodies)
+		ifex, forex, while = ifer(&expr, &bodies), forer(&expr, &bodies), whiler(&expr, &bodies)
 
 		return andId().And(&bodies, true)
 	}

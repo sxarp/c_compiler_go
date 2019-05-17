@@ -193,4 +193,35 @@ return a;
 }
 int inc(int *x) { *x = *x + 1; return 0;}
 `)
+
+	compareMF(t, "22",
+		`
+int main(){
+int b;
+int a;
+
+int* ap;
+ap = &a;
+
+a = 1; b= 22;
+
+return *(ap + 1);
+}
+`)
+
+	compareMF(t, "22",
+		`
+int main(){
+int b;
+int a;
+int c; c = 1;
+
+int* ap;
+ap = &a;
+
+a = 1; b= 22;
+
+return *(ap + c);
+}
+`)
 }
