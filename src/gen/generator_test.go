@@ -289,7 +289,7 @@ func TestPtrAdder(t *testing.T) {
 	for _, c := range []psrTestCase{
 		{
 
-			"a+1",
+			"*(a+1)",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
 				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
@@ -299,7 +299,8 @@ func TestPtrAdder(t *testing.T) {
 				asm.I().Push().Rax(),
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
-				asm.I().Mul().Val(8),
+				asm.I().Mov().Rdi().Val(8),
+				asm.I().Mul().Rdi(),
 				asm.I().Push().Rax(),
 				asm.I().Pop().Rdi(),
 				asm.I().Pop().Rax(),

@@ -122,7 +122,9 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 }
 
 func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
-	return andId().And(psr.Var, true).And(psr.Plus, false).And(addv, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+	return andId().And(psr.Mul, false).And(psr.LPar, false).
+		And(psr.Var, true).And(psr.Plus, false).And(addv, true).
+		And(psr.RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
 		val := st.RefOf(nodes[0].Token.Val())
 		size := val.Type.Size()
@@ -145,7 +147,8 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 		// multiple add val by size
 		code.
 			Ins(asm.I().Pop().Rax()).
-			Ins(asm.I().Mul().Val(size)).
+			Ins(asm.I().Mov().Rdi().Val(size)).
+			Ins(asm.I().Mul().Rdi()).
 			Ins(asm.I().Push().Rax())
 
 		// add both values and push
@@ -468,9 +471,13 @@ func Generator() psr.Parser {
 		rvIdent := rvIdenter(&ptrDeRef)
 		rvVal := orId().Or(&rvAddr).Or(&rvIdent)
 
+		ptrAddVal := numInt
+		ptrAdd := ptrAdder(st, &ptrAddVal)
+		rvPtrAdder := andId().And(&ptrAdd, true).And(&deRefer, true)
+
 		var num, term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
 
-		num = orId().Or(&numInt).Or(&call).Or(&rvVal)
+		num = orId().Or(&rvPtrAdder).Or(&numInt).Or(&call).Or(&rvVal)
 		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
 
 		parTerm := andId().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
