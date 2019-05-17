@@ -13,5 +13,8 @@ jobs:
       - run:
           name: lint
           command: |
-            golangci-lint run ./...
-      - run: go test -v ./...
+            make lint
+      - run:
+          name: test
+          command: |
+            go test -v ./...
