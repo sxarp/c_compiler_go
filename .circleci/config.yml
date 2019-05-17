@@ -2,8 +2,19 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: 705180747189.dkr.ecr.ap-northeast-1.amazonaws.com/c-compiler-go:2.0
+        aws_auth:
+          aws_access_key_id: $AWS_ACCESS_KEY_ID
+          aws_secret_access_key: $AWS_SECRET_ACCESS_KEY
+
     working_directory: /go/wkdir
     steps:
       - checkout
-      - run: go test -v ./...
+      - run:
+          name: lint
+          command: |
+            make lint
+      - run:
+          name: test
+          command: |
+            go test -v ./...

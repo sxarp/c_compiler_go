@@ -33,7 +33,7 @@ func TestEq(t *testing.T) {
 		lhs := Insts{}
 		rhs := Insts{}
 
-		for i, _ := range comp.lhs {
+		for i := range comp.lhs {
 			lhs.Ins(comp.lhs[i])
 			rhs.Ins(comp.rhs[i])
 		}

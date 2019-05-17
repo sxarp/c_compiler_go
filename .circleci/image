@@ -1,0 +1,11 @@
+# Build and push image:
+# TAG=X.X
+# $(aws ecr get-login --no-include-email)
+# IMAGE_NAME=705180747189.dkr.ecr.ap-northeast-1.amazonaws.com/c-compiler-go:$TAG
+# docker build -f=.circleci/image -t=$IMAGE_NAME .
+# docker push $IMAGE_NAME
+
+FROM circleci/golang:1.12
+
+# Install golangci-lint
+RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
