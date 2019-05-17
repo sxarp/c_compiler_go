@@ -52,7 +52,7 @@ func TestAnd(t *testing.T) {
 	}
 
 	tokens = tok.Tokenize("1+1(")
-	a, tokens = p.Call(tokens)
+	a, _ = p.Call(tokens)
 	ast.CheckAst(t, false, a)
 
 }
@@ -91,7 +91,7 @@ func TestOr(t *testing.T) {
 		And(&plus, false).
 		And(Int, true).And(EOF, false)
 
-	a, tokens = p.Call(tokens)
+	a, _ = p.Call(tokens)
 	ast.CheckAst(t, false, a)
 
 }
@@ -104,11 +104,11 @@ func TestRecc(t *testing.T) {
 	parser = parser.Or(Plus).Or(&par)
 	final := AndId().And(&parser, false).And(EOF, false)
 
-	a, tokens := final.Call(tokens)
+	a, _ := final.Call(tokens)
 	ast.CheckAst(t, true, a)
 
 	tokens = tok.Tokenize("(((((+))))")
-	a, tokens = final.Call(tokens)
+	a, _ = final.Call(tokens)
 	ast.CheckAst(t, false, a)
 
 }

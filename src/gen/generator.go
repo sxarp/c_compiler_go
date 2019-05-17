@@ -241,7 +241,7 @@ func varDeclarer(st *SymTable, delm *psr.Parser) psr.Parser {
 
 	astrs := andId().Rep(psr.Mul).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			for _ = range nodes {
+			for range nodes {
 				*vp = (*vp).Ptr()
 			}
 		})

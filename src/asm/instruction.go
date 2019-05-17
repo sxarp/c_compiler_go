@@ -146,30 +146,30 @@ func I() Ini { return Ini{i: Ins{}} }
 
 func (i Ini) Ret() Fin {
 	i.i.ope = ORet()
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func (i Ini) Call(name string) Fin {
 	i.i.ope = Ope{i: "call"}
 	i.i.toS = func() string { return name }
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func (i Ini) Je(name string) Fin {
 	i.i.ope = Ope{i: "je"}
 	i.i.toS = func() string { return name }
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func (i Ini) Jmp(name string) Fin {
 	i.i.ope = Ope{i: "jmp"}
 	i.i.toS = func() string { return name }
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func (i Ini) Label(name string) Fin {
 	i.i.label = name
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func toOped(i Ins, o func() Ope) Oped {
@@ -223,7 +223,7 @@ func (i Oped) R9() Dested  { return toDested(i.i, R9) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
-	return Fin{i: i.i}
+	return Fin(i)
 }
 
 func (i Dested) Rax() Fin { return regFin(i.i, Rax) }

@@ -31,19 +31,6 @@ func tokenTypeToPsr(tt *tok.TokenType) *Parser {
 	}}
 }
 
-func (p Parser) decorate(decorator func(ast.AST) ast.AST) Parser {
-	call := func(t []tok.Token) (ast.AST, []tok.Token) {
-		a, token := p.Call(t)
-
-		a = decorator(a)
-
-		return a, token
-	}
-
-	return Parser{Call: call}
-
-}
-
 func AndId() Parser {
 	return Parser{
 		Call: func(t []tok.Token) (ast.AST, []tok.Token) {
