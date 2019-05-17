@@ -471,7 +471,7 @@ func Generator() psr.Parser {
 		rvIdent := rvIdenter(&ptrDeRef)
 		rvVal := orId().Or(&rvAddr).Or(&rvIdent)
 
-		ptrAddVal := numInt
+		ptrAddVal := orId().Or(&numInt).Or(&rvIdent)
 		ptrAdd := ptrAdder(st, &ptrAddVal)
 		rvPtrAdder := andId().And(&ptrAdd, true).And(&deRefer, true)
 
