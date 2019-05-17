@@ -5,6 +5,8 @@ test=$(go) test
 
 test:
 	$(test) -cover -count=1 ./... # run tests without using cache
+lint:
+	golangci-lint run ./...
 
 testv:
 	$(test) -cover -v -count=1 ./... # run tests without using cache
