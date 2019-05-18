@@ -4,6 +4,9 @@ go=$(dcex) go
 test=$(go) test
 lint=golangci-lint run ./... -E golint
 
+check:
+	make test; make lint
+
 test:
 	$(test) -cover -count=1 ./... # run tests without using cache
 
