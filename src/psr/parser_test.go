@@ -32,7 +32,7 @@ func TestAnd(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
 	var a ast.AST
 
-	p := AndId().And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
+	p := AndIdent().And(Int, true).And(Plus, false).And(Int, true).And(EOF, false)
 	a, tokens = p.Call(tokens)
 	ast.CheckAst(t, true, a)
 
@@ -61,9 +61,9 @@ func TestOr(t *testing.T) {
 	tokens := tok.Tokenize("1+3")
 	var a ast.AST
 
-	porm := OrId().Or(Plus).Or(Minus)
+	porm := OrIdent().Or(Plus).Or(Minus)
 
-	p := AndId().And(Int, true).
+	p := AndIdent().And(Int, true).
 		And(&porm, false).
 		And(Int, true).And(EOF, false)
 
@@ -86,8 +86,8 @@ func TestOr(t *testing.T) {
 	}
 
 	tokens = tok.Tokenize("1-3")
-	plus := OrId().Or(Plus)
-	p = AndId().And(Int, true).
+	plus := OrIdent().Or(Plus)
+	p = AndIdent().And(Int, true).
 		And(&plus, false).
 		And(Int, true).And(EOF, false)
 
@@ -99,10 +99,10 @@ func TestOr(t *testing.T) {
 func TestRecc(t *testing.T) {
 	tokens := tok.Tokenize("(((((+)))))")
 
-	parser := OrId()
-	par := AndId().And(LPar, true).And(&parser, true).And(RPar, true)
+	parser := OrIdent()
+	par := AndIdent().And(LPar, true).And(&parser, true).And(RPar, true)
 	parser = parser.Or(Plus).Or(&par)
-	final := AndId().And(&parser, false).And(EOF, false)
+	final := AndIdent().And(&parser, false).And(EOF, false)
 
 	a, _ := final.Call(tokens)
 	ast.CheckAst(t, true, a)
@@ -117,10 +117,10 @@ func TestRep(t *testing.T) {
 	tokens := tok.Tokenize("1-1+2-4+5")
 	var a ast.AST
 
-	porm := OrId().Or(Plus).Or(Minus)
-	add := AndId().And(&porm, true).And(Int, true)
+	porm := OrIdent().Or(Plus).Or(Minus)
+	add := AndIdent().And(&porm, true).And(Int, true)
 
-	p := AndId().And(Int, true).
+	p := AndIdent().And(Int, true).
 		Rep(&add).And(EOF, false)
 
 	a, tokens = p.Call(tokens)

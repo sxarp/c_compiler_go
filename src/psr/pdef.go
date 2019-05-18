@@ -5,27 +5,30 @@ import (
 	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
-var Plus *Parser = tokenTypeToPsr(&tok.TPlus)
-var Minus *Parser = tokenTypeToPsr(&tok.TMinus)
-var Int *Parser = tokenTypeToPsr(&tok.TInt)
-var LPar *Parser = tokenTypeToPsr(&tok.TLPar)
-var RPar *Parser = tokenTypeToPsr(&tok.TRPar)
-var Mul *Parser = tokenTypeToPsr(&tok.TMul)
-var Div *Parser = tokenTypeToPsr(&tok.TDiv)
-var Semi *Parser = tokenTypeToPsr(&tok.TSemi)
-var Subs *Parser = tokenTypeToPsr(&tok.TSubs)
-var Var *Parser = tokenTypeToPsr(&tok.TVar)
-var Eq *Parser = tokenTypeToPsr(&tok.TEq)
-var Neq *Parser = tokenTypeToPsr(&tok.TNeq)
-var Com *Parser = tokenTypeToPsr(&tok.TCom)
-var Ret *Parser = tokenTypeToPsr(&tok.TRet)
-var LBrc *Parser = tokenTypeToPsr(&tok.TLBrc)
-var RBrc *Parser = tokenTypeToPsr(&tok.TRBrc)
-var If *Parser = tokenTypeToPsr(&tok.TIf)
-var For *Parser = tokenTypeToPsr(&tok.TFor)
-var While *Parser = tokenTypeToPsr(&tok.TWhile)
-var Intd *Parser = tokenTypeToPsr(&tok.TIntd)
-var Amp *Parser = tokenTypeToPsr(&tok.TAmp)
+var (
+	Plus  = tokenTypeToPsr(&tok.TPlus)
+	Minus = tokenTypeToPsr(&tok.TMinus)
+	Int   = tokenTypeToPsr(&tok.TInt)
+	LPar  = tokenTypeToPsr(&tok.TLPar)
+	RPar  = tokenTypeToPsr(&tok.TRPar)
+	Mul   = tokenTypeToPsr(&tok.TMul)
+	Div   = tokenTypeToPsr(&tok.TDiv)
+	Semi  = tokenTypeToPsr(&tok.TSemi)
+	Subs  = tokenTypeToPsr(&tok.TSubs)
+	Var   = tokenTypeToPsr(&tok.TVar)
+	Eq    = tokenTypeToPsr(&tok.TEq)
+	Neq   = tokenTypeToPsr(&tok.TNeq)
+	Com   = tokenTypeToPsr(&tok.TCom)
+	Ret   = tokenTypeToPsr(&tok.TRet)
+	LBrc  = tokenTypeToPsr(&tok.TLBrc)
+	RBrc  = tokenTypeToPsr(&tok.TRBrc)
+	If    = tokenTypeToPsr(&tok.TIf)
+	For   = tokenTypeToPsr(&tok.TFor)
+	While = tokenTypeToPsr(&tok.TWhile)
+	Intd  = tokenTypeToPsr(&tok.TIntd)
+	Amp   = tokenTypeToPsr(&tok.TAmp)
+	EOF   = tokenTypeToPsrWOE(&tok.TEOF)
+)
 
 // To show informative error messages.
 func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
@@ -46,50 +49,48 @@ func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
 	}}
 }
 
-var EOF *Parser = tokenTypeToPsrWOE(&tok.TEOF)
-
 func GenParser() Parser {
-	numv := OrId().Or(Int)
+	numv := OrIdent().Or(Int)
 	num := &numv
 
-	mul := OrId()
-	add := OrId()
-	term := OrId()
+	mul := OrIdent()
+	add := OrIdent()
+	term := OrIdent()
 
-	termPlusMul := AndId().And(&term, true).And(Plus, true).And(&mul, true)
-	termMinusMul := AndId().And(&term, true).And(Minus, true).And(&mul, true)
+	termPlusMul := AndIdent().And(&term, true).And(Plus, true).And(&mul, true)
+	termMinusMul := AndIdent().And(&term, true).And(Minus, true).And(&mul, true)
 	add = add.Or(&termPlusMul).Or(&termMinusMul).Or(&term)
 
-	termMulMul := AndId().And(&term, true).And(Mul, true).And(&mul, true)
-	termDivMul := AndId().And(&term, true).And(Div, true).And(&mul, true)
+	termMulMul := AndIdent().And(&term, true).And(Mul, true).And(&mul, true)
+	termDivMul := AndIdent().And(&term, true).And(Div, true).And(&mul, true)
 	mul = mul.Or(&termMulMul).Or(&termDivMul).Or(&add)
 
 	pop := func(a ast.AST) ast.AST { return a.Node(0) }
-	parTerm := AndId().And(LPar, false).And(&mul, true).And(RPar, false).Trans(pop)
+	parTerm := AndIdent().And(LPar, false).And(&mul, true).And(RPar, false).Trans(pop)
 	term = term.Or(&parTerm).Or(num)
 
-	return AndId().And(&mul, true).And(EOF, false)
+	return AndIdent().And(&mul, true).And(EOF, false)
 
 }
 
 func GenParser2() Parser {
-	numv := OrId().Or(Int)
+	numv := OrIdent().Or(Int)
 	num := &numv
 
-	term := OrId()
-	muls := AndId()
+	term := OrIdent()
+	muls := AndIdent()
 
-	porm := OrId().Or(Plus).Or(Minus)
-	adder := AndId().And(&porm, true).And(&muls, true)
-	adds := AndId().And(&muls, true).Rep(&adder).Trans(ast.PopSingle)
+	porm := OrIdent().Or(Plus).Or(Minus)
+	adder := AndIdent().And(&porm, true).And(&muls, true)
+	adds := AndIdent().And(&muls, true).Rep(&adder).Trans(ast.PopSingle)
 
-	mord := OrId().Or(Mul).Or(Div)
-	muler := AndId().And(&mord, true).And(&term, true)
+	mord := OrIdent().Or(Mul).Or(Div)
+	muler := AndIdent().And(&mord, true).And(&term, true)
 	muls = muls.And(&term, true).Rep(&muler).Trans(ast.PopSingle)
 
-	parTerm := AndId().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
+	parTerm := AndIdent().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
 	term = term.Or(&parTerm).Or(num)
 
-	return AndId().And(&adds, true).And(EOF, false)
+	return AndIdent().And(&adds, true).And(EOF, false)
 
 }

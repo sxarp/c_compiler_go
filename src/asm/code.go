@@ -51,7 +51,6 @@ func (is *Insts) ForEachInst(f func(Fin)) {
 	for _, is := range is.insts {
 		f(is)
 	}
-
 }
 
 func (b *Builder) Str() string {
@@ -60,20 +59,18 @@ func (b *Builder) Str() string {
 	})
 
 	return b.code.Str()
-
 }
 
-func (lhs *Insts) Eq(rhs *Insts) bool {
-	if len(lhs.insts) != len(rhs.insts) {
+func (is *Insts) Eq(rhs *Insts) bool {
+	if len(is.insts) != len(rhs.insts) {
 		return false
 	}
 
 	eq := true
-	for i, li := range lhs.insts {
+	for i, li := range is.insts {
 		eq = eq && li.Eq(&(rhs.insts[i]))
 
 	}
 
 	return eq
-
 }
