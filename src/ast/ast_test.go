@@ -28,7 +28,7 @@ func TestEval(t *testing.T) {
 	numOfInst := 0
 
 	code.ForEachInst(func(i asm.Fin) {
-		*(&numOfInst) += 1
+		*(&numOfInst)++
 	})
 
 	h.ExpectEq(t, numOfInst, 3)

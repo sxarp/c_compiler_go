@@ -53,19 +53,21 @@ func (st *SymTable) Allocated() int {
 }
 
 func (st *SymTable) RefOf(name string) *VarProj {
-	if ref, ok := st.find(name); ok {
+	ref, ok := st.find(name)
+	if ok {
 		return ref
-	} else {
-		panic(fmt.Sprintf("%s is not declared.", name))
 	}
+
+	panic(fmt.Sprintf("%s is not declared.", name))
 }
 
 func (st *SymTable) Last() *VarProj {
-	if v, ok := st.find(st.vars[len(st.vars)-1].name); ok {
+	v, ok := st.find(st.vars[len(st.vars)-1].name)
+	if ok {
 		return v
-	} else {
-		panic("SymTable is empty.")
 	}
+
+	panic("SymTable is empty.")
 }
 
 // Declare symbol.

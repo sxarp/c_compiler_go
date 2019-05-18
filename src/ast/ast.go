@@ -10,12 +10,12 @@ import (
 
 type Eval func([]*AST, asm.Code)
 
-type ASTType struct{}
+type Type struct{}
 
 type AST struct {
 	nodes []*AST
 	Token *tok.Token
-	atype *ASTType
+	atype *Type
 	eval  Eval
 }
 
@@ -27,7 +27,7 @@ func (a *AST) AppendNode(an AST) {
 	a.nodes = append(a.nodes, &an)
 }
 
-var TFail ASTType = ASTType{}
+var TFail = Type{}
 var Fail = AST{atype: &TFail}
 
 func (a AST) Fail() bool {
@@ -59,10 +59,9 @@ func (a AST) Show() string {
 func PopSingle(a AST) AST {
 	if len(a.nodes) == 1 {
 		return *(a.nodes[0])
-	} else {
-		return a
-
 	}
+
+	return a
 }
 
 func (a AST) Eval(code asm.Code) {

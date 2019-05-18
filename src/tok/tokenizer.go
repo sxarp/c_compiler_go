@@ -36,8 +36,8 @@ func (t *Token) Is(tt *TokenType) bool { return t.tt == tt }
 
 func (t *Token) setRC(row, col int) { t.Row, t.Col = row, col }
 
-var TFail TokenType = TokenType{literal: "FAIL"}
-var Fail Token = Token{tt: &TFail, valp: &(TFail.literal)}
+var TFail = TokenType{literal: "FAIL"}
+var Fail = Token{tt: &TFail, valp: &(TFail.literal)}
 
 func (tt *TokenType) match(s string) (Token, string) {
 	if tt.literal != "" {
@@ -67,8 +67,8 @@ func (tt *TokenType) Str() string {
 	return tt.literal
 }
 
-var TEOF TokenType = TokenType{literal: "EOF"}
-var EOF Token = Token{tt: &TEOF, valp: &(TEOF.literal)}
+var TEOF = TokenType{literal: "EOF"}
+var EOF = Token{tt: &TEOF, valp: &(TEOF.literal)}
 
 func tokenizeLine(tokens []Token, line string, row int,
 	tokenTypes []*TokenType, lineLen int) []Token {
@@ -109,7 +109,7 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 	row := 0
 
 	for scanner.Scan() {
-		row += 1
+		row++
 		line := scanner.Text()
 		lineLen := len(line)
 		tokens = tokenizeLine(tokens, line, row, tokenTypes, lineLen)
@@ -118,35 +118,37 @@ func tokenize(tokenTypes []*TokenType, lines string) []Token {
 	return append(tokens, EOF)
 }
 
-var TPlus TokenType = TokenType{literal: "+"}
-var TMinus TokenType = TokenType{literal: "-"}
-var TInt TokenType = TokenType{regex: regexp.MustCompile("^[0-9]+"),
-	vali: func(s string) int {
-		if i, err := strconv.Atoi(s); err != nil {
-			panic(fmt.Sprintf("Failed to convert %s to int!", s))
-		} else {
-			return i
-		}
-	},
-}
-var TVar TokenType = TokenType{regex: regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*")}
-var TLPar TokenType = TokenType{literal: "("}
-var TRPar TokenType = TokenType{literal: ")"}
-var TMul TokenType = TokenType{literal: "*"}
-var TDiv TokenType = TokenType{literal: "/"}
-var TSubs TokenType = TokenType{literal: "="}
-var TSemi TokenType = TokenType{literal: ";"}
-var TEq TokenType = TokenType{literal: "=="}
-var TNeq TokenType = TokenType{literal: "!="}
-var TCom TokenType = TokenType{literal: ","}
-var TRet TokenType = TokenType{literal: "return"}
-var TLBrc TokenType = TokenType{literal: "{"}
-var TRBrc TokenType = TokenType{literal: "}"}
-var TIf TokenType = TokenType{literal: "if"}
-var TWhile TokenType = TokenType{literal: "while"}
-var TFor TokenType = TokenType{literal: "for"}
-var TIntd TokenType = TokenType{literal: "int"}
-var TAmp TokenType = TokenType{literal: "&"}
+var (
+	TPlus  = TokenType{literal: "+"}
+	TMinus = TokenType{literal: "-"}
+	TInt   = TokenType{regex: regexp.MustCompile("^[0-9]+"),
+		vali: func(s string) int {
+			if i, err := strconv.Atoi(s); err != nil {
+				panic(fmt.Sprintf("Failed to convert %s to int!", s))
+			} else {
+				return i
+			}
+		},
+	}
+	TVar   = TokenType{regex: regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9]*")}
+	TLPar  = TokenType{literal: "("}
+	TRPar  = TokenType{literal: ")"}
+	TMul   = TokenType{literal: "*"}
+	TDiv   = TokenType{literal: "/"}
+	TSubs  = TokenType{literal: "="}
+	TSemi  = TokenType{literal: ";"}
+	TEq    = TokenType{literal: "=="}
+	TNeq   = TokenType{literal: "!="}
+	TCom   = TokenType{literal: ","}
+	TRet   = TokenType{literal: "return"}
+	TLBrc  = TokenType{literal: "{"}
+	TRBrc  = TokenType{literal: "}"}
+	TIf    = TokenType{literal: "if"}
+	TWhile = TokenType{literal: "while"}
+	TFor   = TokenType{literal: "for"}
+	TIntd  = TokenType{literal: "int"}
+	TAmp   = TokenType{literal: "&"}
+)
 
 var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
 	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc, &TAmp}

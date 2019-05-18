@@ -138,7 +138,7 @@ type Fin struct {
 
 func (i Fin) str() string { return i.i.str() }
 
-func (lhs *Fin) Eq(rhs *Fin) bool { return lhs.str() == rhs.str() }
+func (i *Fin) Eq(rhs *Fin) bool { return i.str() == rhs.str() }
 
 func (i Fin) Write(sb *str.Builder) { sb.Write(i.str()) }
 
