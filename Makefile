@@ -2,11 +2,16 @@ dc=docker-compose
 dcex=$(dc) exec main
 go=$(dcex) go
 test=$(go) test
+lint=golangci-lint run ./... -E golint
 
 test:
 	$(test) -cover -count=1 ./... # run tests without using cache
+
 lint:
-	golangci-lint run ./... -E golint
+	$(dcex) $(lint)
+
+lint-ci:
+	$(lint)
 
 testv:
 	$(test) -cover -v -count=1 ./... # run tests without using cache
