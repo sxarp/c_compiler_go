@@ -148,10 +148,11 @@ var (
 	TFor   = TokenType{literal: "for"}
 	TIntd  = TokenType{literal: "int"}
 	TAmp   = TokenType{literal: "&"}
+	TSys   = TokenType{literal: "syscall"}
 )
 
 var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
-	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc, &TAmp}
+	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TSys, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc, &TAmp}
 
 func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 
