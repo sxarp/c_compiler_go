@@ -10,6 +10,9 @@ check:
 test:
 	$(test) -cover -count=1 ./... # run tests without using cache
 
+watch:
+	 find ./ -name '*.go' | entr make check
+
 lint:
 	$(dcex) $(lint)
 
