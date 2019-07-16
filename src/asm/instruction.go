@@ -44,6 +44,7 @@ func OCmp() Ope   { return Ope{i: "cmp"} }
 func OSete() Ope  { return Ope{i: "sete"} }
 func OSetne() Ope { return Ope{i: "setne"} }
 func OMovzb() Ope { return Ope{i: "movzb"} }
+func OSys() Ope   { return Ope{i: "syscall"} }
 
 type Ins struct {
 	ope  Ope
@@ -146,6 +147,11 @@ func I() Ini { return Ini{i: Ins{}} }
 
 func (i Ini) Ret() Fin {
 	i.i.ope = ORet()
+	return Fin(i)
+}
+
+func (i Ini) Sys() Fin {
+	i.i.ope = OSys()
 	return Fin(i)
 }
 

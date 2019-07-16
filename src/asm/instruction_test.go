@@ -38,6 +38,7 @@ func TestIns(t *testing.T) {
 	h.ExpectEq(t, "main:", I().Label("main").str())
 	h.ExpectEq(t, "        je .Lend", I().Je(".Lend").str())
 	h.ExpectEq(t, "        jmp .Lend", I().Jmp(".Lend").str())
+	h.ExpectEq(t, "        syscall", I().Sys().str())
 }
 
 func TestFinEq(t *testing.T) {
