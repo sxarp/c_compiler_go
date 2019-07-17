@@ -228,6 +228,32 @@ func TestMuldivs(t *testing.T) {
 	}
 }
 
+func TestSyscaller(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+
+			"syscall 1 1 256 2",
+			[]asm.Fin{
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rdi(),
+				asm.I().Push().Val(256),
+				asm.I().Pop().Rsi(),
+				asm.I().Push().Val(2),
+				asm.I().Pop().Rdx(),
+				asm.I().Push().Val(1),
+				asm.I().Pop().Rax(),
+				asm.I().Sys(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"2",
+		},
+	} {
+		compCode(t, syscaller(&numInt), c)
+	}
+}
+
 func TestProloguer(t *testing.T) {
 
 	for _, c := range []psrTestCase{

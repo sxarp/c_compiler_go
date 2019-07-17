@@ -27,6 +27,7 @@ var (
 	While = tokenTypeToPsr(&tok.TWhile)
 	Intd  = tokenTypeToPsr(&tok.TIntd)
 	Amp   = tokenTypeToPsr(&tok.TAmp)
+	Sys   = tokenTypeToPsr(&tok.TSys)
 	EOF   = tokenTypeToPsrWOE(&tok.TEOF)
 )
 
