@@ -24,6 +24,7 @@ func Rsi() Reg { return Reg{r: "rsi"} }
 func Rcx() Reg { return Reg{r: "rcx"} }
 func R8() Reg  { return Reg{r: "r8"} }
 func R9() Reg  { return Reg{r: "r9"} }
+func R10() Reg { return Reg{r: "r10"} }
 
 type Ope struct {
 	i string
@@ -226,6 +227,7 @@ func (i Oped) Rsi() Dested { return toDested(i.i, Rsi) }
 func (i Oped) Rcx() Dested { return toDested(i.i, Rcx) }
 func (i Oped) R8() Dested  { return toDested(i.i, R8) }
 func (i Oped) R9() Dested  { return toDested(i.i, R9) }
+func (i Oped) R10() Dested { return toDested(i.i, R10) }
 
 func (i Dested) Val(s int) Fin {
 	i.i.srcI = s
@@ -242,6 +244,7 @@ func (i Dested) Rsi() Fin { return regFin(i.i, Rsi) }
 func (i Dested) Rcx() Fin { return regFin(i.i, Rcx) }
 func (i Dested) R8() Fin  { return regFin(i.i, R8) }
 func (i Dested) R9() Fin  { return regFin(i.i, R9) }
+func (i Dested) R10() Fin { return regFin(i.i, R10) }
 
 func (i Fin) P() Fin {
 	i.i.srcP = true

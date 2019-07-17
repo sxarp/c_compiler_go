@@ -92,6 +92,35 @@ func eqneqs(term *psr.Parser) psr.Parser {
 	return andIdt().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
 }
 
+func syscaller(term *psr.Parser) psr.Parser {
+	// Registers used to pass arguments to system call
+	regs := []asm.Fin{
+		asm.I().Pop().Rdi(),
+		asm.I().Pop().Rsi(),
+		asm.I().Pop().Rdx(),
+		asm.I().Pop().R10(),
+		asm.I().Pop().R8(),
+		asm.I().Pop().R9(),
+	}
+
+	return andIdt().And(psr.Sys, false).And(&numInt, true).Rep(term).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+
+			for i, node := range nodes[1:] {
+				node.Eval(code)
+				code.Ins(regs[i])
+			}
+
+			// Set syscall number
+			nodes[0].Eval(code)
+			code.Ins(asm.I().Pop().Rax())
+			// Call syscall instruction
+			code.Ins(asm.I().Sys())
+			// Push returned value from system call
+			code.Ins(asm.I().Push().Rax())
+		})
+}
+
 func prologuer(st *SymTable) psr.Parser {
 	return andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.
