@@ -224,4 +224,15 @@ a = 1; b= 22;
 return *(ap + c);
 }
 `)
+
+	compareMF(t, "2",
+		`
+int main(){
+int ret;
+int val; val = 156;
+int size; size = 2;
+ret = syscall 1 1 val size;
+return ret;
+}
+`)
 }

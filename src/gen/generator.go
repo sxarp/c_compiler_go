@@ -504,9 +504,9 @@ func Generator() psr.Parser {
 		ptrAdd := ptrAdder(st, &ptrAddVal)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
-		var num, term, muls, adds, expr, eqs, call, ifex, while, forex psr.Parser
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall psr.Parser
 
-		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&call).Or(&rvVal)
+		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
 		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
 
 		parTerm := andIdt().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
@@ -515,6 +515,7 @@ func Generator() psr.Parser {
 		assign := assigner(&ptrDeRef, &expr)
 		expr = orIdt().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
+		syscall = syscaller(&expr)
 		semi := andIdt().And(&expr, true).And(psr.Semi, false)
 		varDeclare := varDeclarer(st, psr.Semi)
 
