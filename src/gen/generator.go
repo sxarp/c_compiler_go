@@ -5,13 +5,8 @@ import (
 
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/ast"
-	"github.com/sxarp/c_compiler_go/src/psr"
 	"github.com/sxarp/c_compiler_go/src/tp"
 )
-
-var orIdt = psr.OrIdent
-var andIdt = psr.AndIdent
-var null = andIdt()
 
 func checkNodeCount(nodes []*ast.AST, count int) {
 	if l := len(nodes); l != count {
@@ -19,13 +14,13 @@ func checkNodeCount(nodes []*ast.AST, count int) {
 	}
 }
 
-var numInt = andIdt().And(psr.Int, true).
+var numInt = andIdt().And(Int, true).
 	SetEval(func(nodes []*ast.AST, code asm.Code) {
 		i := nodes[0].Token.Vali()
 		code.Ins(asm.I().Push().Val(i))
 	})
 
-func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr.Parser {
+func binaryOperator(term *Compiler, operator *Compiler, insts []asm.Fin) Compiler {
 	return andIdt().And(operator, false).And(term, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 1)
@@ -38,55 +33,55 @@ func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr
 
 }
 
-func adder(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Plus, []asm.Fin{asm.I().Add().Rax().Rdi()})
+func adder(term *Compiler) Compiler {
+	return binaryOperator(term, Plus, []asm.Fin{asm.I().Add().Rax().Rdi()})
 }
 
-func subber(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
+func subber(term *Compiler) Compiler {
+	return binaryOperator(term, Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
 }
 
-func addsubs(term *psr.Parser) psr.Parser {
+func addsubs(term *Compiler) Compiler {
 	add, sub := adder(term), subber(term)
 	addsub := orIdt().Or(&add).Or(&sub)
 	return andIdt().And(term, true).Rep(&addsub).Trans(ast.PopSingle)
 }
 
-func muler(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Mul, []asm.Fin{asm.I().Mul().Rdi()})
+func muler(term *Compiler) Compiler {
+	return binaryOperator(term, Mul, []asm.Fin{asm.I().Mul().Rdi()})
 }
 
-func diver(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Div, []asm.Fin{asm.I().Mov().Rdx().Val(0), asm.I().Div().Rdi()})
+func diver(term *Compiler) Compiler {
+	return binaryOperator(term, Div, []asm.Fin{asm.I().Mov().Rdx().Val(0), asm.I().Div().Rdi()})
 }
 
-func muldivs(term *psr.Parser) psr.Parser {
+func muldivs(term *Compiler) Compiler {
 	mul, div := muler(term), diver(term)
 	muldiv := orIdt().Or(&mul).Or(&div)
 	return andIdt().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
 }
 
-func eqer(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Eq, []asm.Fin{
+func eqer(term *Compiler) Compiler {
+	return binaryOperator(term, Eq, []asm.Fin{
 		asm.I().Cmp().Rdi().Rax(),
 		asm.I().Sete().Al(),
 		asm.I().Movzb().Rax().Al()})
 }
 
-func neqer(term *psr.Parser) psr.Parser {
-	return binaryOperator(term, psr.Neq, []asm.Fin{
+func neqer(term *Compiler) Compiler {
+	return binaryOperator(term, Neq, []asm.Fin{
 		asm.I().Cmp().Rdi().Rax(),
 		asm.I().Setne().Al(),
 		asm.I().Movzb().Rax().Al()})
 }
 
-func eqneqs(term *psr.Parser) psr.Parser {
+func eqneqs(term *Compiler) Compiler {
 	eq, neq := eqer(term), neqer(term)
 	eqneq := orIdt().Or(&eq).Or(&neq)
 	return andIdt().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
 }
 
-func syscaller(term *psr.Parser) psr.Parser {
+func syscaller(term *Compiler) Compiler {
 	// Registers used to pass arguments to system call
 	regs := []asm.Fin{
 		asm.I().Pop().Rdi(),
@@ -97,7 +92,7 @@ func syscaller(term *psr.Parser) psr.Parser {
 		asm.I().Pop().R9(),
 	}
 
-	return andIdt().And(psr.Sys, false).And(&numInt, true).Rep(term).
+	return andIdt().And(Sys, false).And(&numInt, true).Rep(term).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 
 			for i, node := range nodes[1:] {
@@ -115,7 +110,7 @@ func syscaller(term *psr.Parser) psr.Parser {
 		})
 }
 
-func prologuer(st *SymTable) psr.Parser {
+func prologuer(st *SymTable) Compiler {
 	return andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.Ins(
 			asm.I().Push().Rbp(),
@@ -124,7 +119,7 @@ func prologuer(st *SymTable) psr.Parser {
 	})
 }
 
-var epilogue psr.Parser = andIdt().SetEval(
+var epilogue = andIdt().SetEval(
 	func(nodes []*ast.AST, code asm.Code) {
 		code.Ins(
 			asm.I().Mov().Rsp().Rbp(),
@@ -132,9 +127,9 @@ var epilogue psr.Parser = andIdt().SetEval(
 			asm.I().Ret())
 	})
 
-var popRax psr.Parser = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+var popRax = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
 
-func loadValer(st *SymTable, sym *string) psr.Parser {
+func loadValer(st *SymTable, sym *string) Compiler {
 	return andIdt().SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			code.Ins(
@@ -144,10 +139,10 @@ func loadValer(st *SymTable, sym *string) psr.Parser {
 		})
 }
 
-func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
-	return andIdt().And(psr.Mul, false).And(psr.LPar, false).
-		And(psr.Var, true).And(psr.Plus, false).And(addv, true).
-		And(psr.RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
+func ptrAdder(st *SymTable, addv *Compiler) Compiler {
+	return andIdt().And(Mul, false).And(LPar, false).
+		And(CVar, true).And(Plus, false).And(addv, true).
+		And(RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
 		val := st.RefOf(nodes[0].Token.Val())
 		size := val.Type.Size()
@@ -183,11 +178,11 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 	})
 }
 
-func lvIdenter(st *SymTable) psr.Parser {
+func lvIdenter(st *SymTable) Compiler {
 	var sym string
 	loadVal := loadValer(st, &sym)
 
-	return andIdt().And(psr.Var, true).And(&loadVal, true).SetEval(
+	return andIdt().And(CVar, true).And(&loadVal, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			sym = nodes[0].Token.Val()
@@ -195,19 +190,19 @@ func lvIdenter(st *SymTable) psr.Parser {
 		})
 }
 
-func rvAddrer(lvIdent *psr.Parser) psr.Parser {
-	return andIdt().And(psr.Amp, false).And(lvIdent, true)
+func rvAddrer(lvIdent *Compiler) Compiler {
+	return andIdt().And(Amp, false).And(lvIdent, true)
 }
 
-var deRefer psr.Parser = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
+var deRefer = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 	code.Ins(
 		asm.I().Pop().Rax(),
 		asm.I().Mov().Rax().Rax().P(),
 		asm.I().Push().Rax())
 })
 
-func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
-	astr := andIdt().And(psr.Mul, false).And(&deRefer, true)
+func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
+	astr := andIdt().And(Mul, false).And(&deRefer, true)
 
 	var deRefCount int
 	astrs := andIdt().Rep(&astr).SetEval(
@@ -222,7 +217,7 @@ func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
 	var sym string
 	loadVal := loadValer(st, &sym)
 
-	return andIdt().And(&astrs, true).And(psr.Var, true).And(&loadVal, true).SetEval(
+	return andIdt().And(&astrs, true).And(CVar, true).And(&loadVal, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			sym = nodes[1].Token.Val()
 			symType := st.RefOf(sym).Type
@@ -238,12 +233,12 @@ func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
 		})
 }
 
-func rvIdenter(ptrDeRef *psr.Parser) psr.Parser {
+func rvIdenter(ptrDeRef *Compiler) Compiler {
 	return andIdt().And(ptrDeRef, true).And(&deRefer, true)
 }
 
-func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
-	return andIdt().And(lv, true).And(psr.Subs, false).And(rv, true).SetEval(
+func assigner(lv *Compiler, rv *Compiler) Compiler {
+	return andIdt().And(lv, true).And(Subs, false).And(rv, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 
@@ -258,18 +253,18 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 		})
 }
 
-func varDeclarer(st *SymTable, delm *psr.Parser) psr.Parser {
+func varDeclarer(st *SymTable, delm *Compiler) Compiler {
 	var varType = tp.Int
 	vp := &varType
 
-	astrs := andIdt().Rep(psr.Mul).SetEval(
+	astrs := andIdt().Rep(Mul).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			for range nodes {
 				*vp = (*vp).Ptr()
 			}
 		})
 
-	return andIdt().And(psr.Intd, false).And(&astrs, true).And(psr.Var, true).And(delm, false).SetEval(
+	return andIdt().And(Intd, false).And(&astrs, true).And(CVar, true).And(delm, false).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(nil)
@@ -278,17 +273,17 @@ func varDeclarer(st *SymTable, delm *psr.Parser) psr.Parser {
 		})
 }
 
-func returner(term *psr.Parser) psr.Parser {
+func returner(term *Compiler) Compiler {
 	retval := andIdt().And(term, true).And(&popRax, true)
 	ret := orIdt().Or(&retval).Or(&null)
-	return andIdt().And(psr.Ret, false).And(&ret, true).And(&epilogue, true)
+	return andIdt().And(Ret, false).And(&ret, true).And(&epilogue, true)
 }
 
 var ifcount int
 
-func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
-	return andIdt().And(psr.If, false).And(psr.LPar, false).And(condition, true).And(psr.RPar, false).
-		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+func ifer(condition *Compiler, body *Compiler) Compiler {
+	return andIdt().And(If, false).And(LPar, false).And(condition, true).And(RPar, false).
+		And(LBrc, false).And(body, true).And(RBrc, false).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(code)
@@ -307,9 +302,9 @@ func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
 
 var whilecount int
 
-func whiler(condition, body *psr.Parser) psr.Parser {
-	return andIdt().And(psr.While, false).And(psr.LPar, false).And(condition, true).And(psr.RPar, false).
-		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+func whiler(condition, body *Compiler) Compiler {
+	return andIdt().And(While, false).And(LPar, false).And(condition, true).And(RPar, false).
+		And(LBrc, false).And(body, true).And(RBrc, false).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			begin, end := fmt.Sprintf("while_begin_%d", whilecount),
@@ -340,15 +335,15 @@ func whiler(condition, body *psr.Parser) psr.Parser {
 
 var forcount int
 
-func forer(conditions, body *psr.Parser) psr.Parser {
+func forer(conditions, body *Compiler) Compiler {
 	nullCond := orIdt().Or(conditions).Or(&null)
-	semiCond := andIdt().And(&nullCond, true).And(psr.Semi, false)
+	semiCond := andIdt().And(&nullCond, true).And(Semi, false)
 	ini := andIdt().And(&semiCond, true).And(&popRax, true)
 	incr := andIdt().And(&nullCond, true).And(&popRax, true)
 
-	return andIdt().And(psr.For, false).And(psr.LPar, false).
-		And(&ini, true).And(&semiCond, true).And(&incr, true).And(psr.RPar, false).
-		And(psr.LBrc, false).And(body, true).And(psr.RBrc, false).SetEval(
+	return andIdt().And(For, false).And(LPar, false).
+		And(&ini, true).And(&semiCond, true).And(&incr, true).And(RPar, false).
+		And(LBrc, false).And(body, true).And(RBrc, false).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 4)
 
@@ -384,11 +379,11 @@ func forer(conditions, body *psr.Parser) psr.Parser {
 		})
 }
 
-func funcCaller(term *psr.Parser) psr.Parser {
-	funcName := andIdt().And(psr.Var, true).
+func funcCaller(term *Compiler) Compiler {
+	funcName := andIdt().And(CVar, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
 
-	commed := andIdt().And(psr.Com, false).And(term, true).Trans(ast.PopSingle)
+	commed := andIdt().And(Com, false).And(term, true).Trans(ast.PopSingle)
 
 	argRegs := []asm.Dested{
 		asm.I().Mov().Rdi(),
@@ -416,7 +411,7 @@ func funcCaller(term *psr.Parser) psr.Parser {
 
 	args := orIdt().Or(&argvs).Or(&null)
 
-	return andIdt().And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
+	return andIdt().And(&funcName, true).And(LPar, false).And(&args, true).And(RPar, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[1].Eval(code)
@@ -425,10 +420,10 @@ func funcCaller(term *psr.Parser) psr.Parser {
 		})
 }
 
-func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
+func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 	var st = new(SymTable)
 
-	funcName := andIdt().And(psr.Var, true).
+	funcName := andIdt().And(CVar, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Label(nodes[0].Token.Val())) })
 
 	argRegs := []asm.Fin{
@@ -457,14 +452,14 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 			argRegs[v.Seq])
 	})
 
-	commed := andIdt().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)
+	commed := andIdt().And(Com, false).And(&argv, true).Trans(ast.PopSingle)
 	argvs := andIdt().And(&argv, true).Rep(&commed)
 	args := orIdt().Or(&argvs).Or(&null)
 	body := bodyer(st)
 	prologue := prologuer(st)
 
-	return andIdt().And(psr.Intd, false).And(&funcName, true).And(psr.LPar, false).And(&args, true).And(psr.RPar, false).
-		And(&prologue, true).And(psr.LBrc, false).And(&body, true).And(psr.RBrc, false).
+	return andIdt().And(Intd, false).And(&funcName, true).And(LPar, false).And(&args, true).And(RPar, false).
+		And(&prologue, true).And(LBrc, false).And(&body, true).And(RBrc, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 4)
 
@@ -485,8 +480,8 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 		})
 }
 
-func Generator() psr.Parser {
-	body := func(st *SymTable) psr.Parser {
+func Generator() Compiler {
+	body := func(st *SymTable) Compiler {
 		lvIdent := lvIdenter(st)
 		ptrDeRef := ptrDeRefer(st, &lvIdent)
 
@@ -498,20 +493,20 @@ func Generator() psr.Parser {
 		ptrAdd := ptrAdder(st, &ptrAddVal)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
-		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall psr.Parser
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
 
 		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
 		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
 
-		parTerm := andIdt().And(psr.LPar, false).And(&adds, true).And(psr.RPar, false).Trans(ast.PopSingle)
+		parTerm := andIdt().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
 		term = orIdt().Or(&num).Or(&parTerm)
 
 		assign := assigner(&ptrDeRef, &expr)
 		expr = orIdt().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		syscall = syscaller(&expr)
-		semi := andIdt().And(&expr, true).And(psr.Semi, false)
-		varDeclare := varDeclarer(st, psr.Semi)
+		semi := andIdt().And(&expr, true).And(Semi, false)
+		varDeclare := varDeclarer(st, Semi)
 
 		line, ret := andIdt().And(&semi, true).And(&popRax, true), returner(&semi)
 
@@ -526,5 +521,5 @@ func Generator() psr.Parser {
 	function := funcDefiner(body)
 	functions := andIdt().Rep(&function)
 
-	return andIdt().And(&functions, true).And(psr.EOF, false)
+	return andIdt().And(&functions, true).And(EOF, false)
 }
