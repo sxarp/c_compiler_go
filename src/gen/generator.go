@@ -31,14 +31,8 @@ func binaryOperator(term *psr.Parser, operator *psr.Parser, insts []asm.Fin) psr
 			checkNodeCount(nodes, 1)
 			nodes[0].Eval(code)
 
-			code.
-				Ins(asm.I().Pop().Rdi()).
-				Ins(asm.I().Pop().Rax())
-
-			for _, i := range insts {
-				code.Ins(i)
-			}
-
+			code.Ins(asm.I().Pop().Rdi(), asm.I().Pop().Rax())
+			code.Ins(insts...)
 			code.Ins(asm.I().Push().Rax())
 		})
 
@@ -123,19 +117,19 @@ func syscaller(term *psr.Parser) psr.Parser {
 
 func prologuer(st *SymTable) psr.Parser {
 	return andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
-		code.
-			Ins(asm.I().Push().Rbp()).
-			Ins(asm.I().Mov().Rbp().Rsp()).
-			Ins(asm.I().Sub().Rsp().Val(st.Allocated()))
+		code.Ins(
+			asm.I().Push().Rbp(),
+			asm.I().Mov().Rbp().Rsp(),
+			asm.I().Sub().Rsp().Val(st.Allocated()))
 	})
 }
 
 var epilogue psr.Parser = andIdt().SetEval(
 	func(nodes []*ast.AST, code asm.Code) {
-		code.
-			Ins(asm.I().Mov().Rsp().Rbp()).
-			Ins(asm.I().Pop().Rbp()).
-			Ins(asm.I().Ret())
+		code.Ins(
+			asm.I().Mov().Rsp().Rbp(),
+			asm.I().Pop().Rbp(),
+			asm.I().Ret())
 	})
 
 var popRax psr.Parser = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
@@ -143,10 +137,10 @@ var popRax psr.Parser = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 func loadValer(st *SymTable, sym *string) psr.Parser {
 	return andIdt().SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
-			code.
-				Ins(asm.I().Mov().Rax().Rbp()).
-				Ins(asm.I().Sub().Rax().Val(st.RefOf(*sym).Addr)).
-				Ins(asm.I().Push().Rax())
+			code.Ins(
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(st.RefOf(*sym).Addr),
+				asm.I().Push().Rax())
 		})
 }
 
@@ -159,33 +153,33 @@ func ptrAdder(st *SymTable, addv *psr.Parser) psr.Parser {
 		size := val.Type.Size()
 
 		// load ptr
-		code.
-			Ins(asm.I().Mov().Rax().Rbp()).
-			Ins(asm.I().Sub().Rax().Val(val.Addr)).
-			Ins(asm.I().Push().Rax())
+		code.Ins(
+			asm.I().Mov().Rax().Rbp(),
+			asm.I().Sub().Rax().Val(val.Addr),
+			asm.I().Push().Rax())
 
 		// load value
-		code.
-			Ins(asm.I().Pop().Rax()).
-			Ins(asm.I().Mov().Rax().Rax().P()).
-			Ins(asm.I().Push().Rax())
+		code.Ins(
+			asm.I().Pop().Rax(),
+			asm.I().Mov().Rax().Rax().P(),
+			asm.I().Push().Rax())
 
 		// eval add val
 		nodes[1].Eval(code)
 
 		// multiple add val by size
-		code.
-			Ins(asm.I().Pop().Rax()).
-			Ins(asm.I().Mov().Rdi().Val(size)).
-			Ins(asm.I().Mul().Rdi()).
-			Ins(asm.I().Push().Rax())
+		code.Ins(
+			asm.I().Pop().Rax(),
+			asm.I().Mov().Rdi().Val(size),
+			asm.I().Mul().Rdi(),
+			asm.I().Push().Rax())
 
 		// add both values and push
-		code.
-			Ins(asm.I().Pop().Rdi()).
-			Ins(asm.I().Pop().Rax()).
-			Ins(asm.I().Add().Rax().Rdi()).
-			Ins(asm.I().Push().Rax())
+		code.Ins(
+			asm.I().Pop().Rdi(),
+			asm.I().Pop().Rax(),
+			asm.I().Add().Rax().Rdi(),
+			asm.I().Push().Rax())
 	})
 }
 
@@ -206,10 +200,10 @@ func rvAddrer(lvIdent *psr.Parser) psr.Parser {
 }
 
 var deRefer psr.Parser = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
-	code.
-		Ins(asm.I().Pop().Rax()).
-		Ins(asm.I().Mov().Rax().Rax().P()).
-		Ins(asm.I().Push().Rax())
+	code.Ins(
+		asm.I().Pop().Rax(),
+		asm.I().Mov().Rax().Rax().P(),
+		asm.I().Push().Rax())
 })
 
 func ptrDeRefer(st *SymTable, lvIdent *psr.Parser) psr.Parser {
@@ -255,11 +249,11 @@ func assigner(lv *psr.Parser, rv *psr.Parser) psr.Parser {
 
 			nodes[1].Eval(code) // Evaluate right value
 			nodes[0].Eval(code) // Evaluate left value
-			code.
-				Ins(asm.I().Pop().Rdi()).           // load lv to rdi
-				Ins(asm.I().Pop().Rax()).           // load rv to rax
-				Ins(asm.I().Mov().Rdi().P().Rax()). // mv rax to [lv]
-				Ins(asm.I().Push().Rax())
+			code.Ins(
+				asm.I().Pop().Rdi(),           // load lv to rdi
+				asm.I().Pop().Rax(),           // load rv to rax
+				asm.I().Mov().Rdi().P().Rax(), // mv rax to [lv]
+				asm.I().Push().Rax())
 
 		})
 }
@@ -300,10 +294,10 @@ func ifer(condition *psr.Parser, body *psr.Parser) psr.Parser {
 			nodes[0].Eval(code)
 
 			label := fmt.Sprintf("iflabel_%d", ifcount)
-			code.
-				Ins(asm.I().Pop().Rax()).
-				Ins(asm.I().Cmp().Rax().Val(0)).
-				Ins(asm.I().Je(label))
+			code.Ins(
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rax().Val(0),
+				asm.I().Je(label))
 
 			nodes[1].Eval(code)
 			code.Ins(asm.I().Label(label))
@@ -327,10 +321,10 @@ func whiler(condition, body *psr.Parser) psr.Parser {
 			nodes[0].Eval(code)
 
 			// If the condition part is evaluated as zero, then go to end.
-			code.
-				Ins(asm.I().Pop().Rax()).
-				Ins(asm.I().Cmp().Rax().Val(0)).
-				Ins(asm.I().Je(end))
+			code.Ins(
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rax().Val(0),
+				asm.I().Je(end))
 
 			// Evaluate the body part.
 			nodes[1].Eval(code)
@@ -370,10 +364,10 @@ func forer(conditions, body *psr.Parser) psr.Parser {
 			nodes[1].Eval(code)
 
 			// If condition part is evaluated as zero, then go to end.
-			code.
-				Ins(asm.I().Pop().Rax()).
-				Ins(asm.I().Cmp().Rax().Val(0)).
-				Ins(asm.I().Je(end))
+			code.Ins(
+				asm.I().Pop().Rax(),
+				asm.I().Cmp().Rax().Val(0),
+				asm.I().Je(end))
 
 			// Evaluate the increment part.
 			nodes[2].Eval(code)
@@ -457,10 +451,10 @@ func funcDefiner(bodyer func(*SymTable) psr.Parser) psr.Parser {
 			panic("too many arguments")
 		}
 
-		code.
-			Ins(asm.I().Mov().Rax().Rbp()).
-			Ins(asm.I().Sub().Rax().Val(v.Addr)).
-			Ins(argRegs[v.Seq])
+		code.Ins(
+			asm.I().Mov().Rax().Rbp(),
+			asm.I().Sub().Rax().Val(v.Addr),
+			argRegs[v.Seq])
 	})
 
 	commed := andIdt().And(psr.Com, false).And(&argv, true).Trans(ast.PopSingle)

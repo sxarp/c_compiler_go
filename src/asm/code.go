@@ -5,7 +5,7 @@ import (
 )
 
 type Code interface {
-	Ins(Fin) Code
+	Ins(...Fin) Code
 	For(func(int, Fin))
 }
 
@@ -32,9 +32,8 @@ func NewBuilder(is *Insts) *Builder {
 	return &Builder{code: &sb, insts: is}
 }
 
-func (is *Insts) Ins(i Fin) Code {
-	is.insts = append(is.insts, i)
-
+func (is *Insts) Ins(fs ...Fin) Code {
+	is.insts = append(is.insts, fs...)
 	return is
 }
 
