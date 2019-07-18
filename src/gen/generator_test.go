@@ -6,7 +6,6 @@ import (
 
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/h"
-	"github.com/sxarp/c_compiler_go/src/psr"
 	"github.com/sxarp/c_compiler_go/src/tok"
 	"github.com/sxarp/c_compiler_go/src/tp"
 )
@@ -18,7 +17,7 @@ type psrTestCase struct {
 	expected string
 }
 
-func compCode(t *testing.T, p psr.Parser, c psrTestCase) {
+func compCode(t *testing.T, p Compiler, c psrTestCase) {
 	t.Helper()
 	lhs := asm.New()
 	var finalInst asm.Fin
@@ -799,7 +798,7 @@ func TestFuncDefiner(t *testing.T) {
 			"22",
 		},
 	} {
-		body := func(st *SymTable) psr.Parser { return returner(&numInt) }
+		body := func(st *SymTable) Compiler { return returner(&numInt) }
 		compCode(t, funcDefiner(body), c)
 	}
 }
@@ -880,7 +879,7 @@ int idp(int *a, int *b, int c) { return *a + *b + c}
 			"6",
 		},
 	} {
-		body := func(st *SymTable) psr.Parser {
+		body := func(st *SymTable) Compiler {
 			lvIdent := lvIdenter(st)
 			ptrDeRef := ptrDeRefer(st, &lvIdent)
 
@@ -888,7 +887,7 @@ int idp(int *a, int *b, int c) { return *a + *b + c}
 			rvIdent := rvIdenter(&ptrDeRef)
 			rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
-			var caller psr.Parser
+			var caller Compiler
 			callerOrIdentOrNum := orIdt().Or(&caller).Or(&rvVal).Or(&numInt)
 			adds := addsubs(&callerOrIdentOrNum)
 			caller = funcCaller(&adds)
