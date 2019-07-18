@@ -122,131 +122,123 @@ func (i Ins) str() string {
 	return sb.Str()
 }
 
-type Ini struct {
-	i Ins
-}
+type Ini Ins
 
-type Oped struct {
-	i Ins
-}
+type Oped Ins
 
-type Dested struct {
-	i Ins
-}
+type Dested Ins
 
-type Fin struct {
-	i Ins
-}
+type Fin Ins
 
-func (i Fin) str() string { return i.i.str() }
+func (i Fin) str() string { return Ins(i).str() }
 
 func (i *Fin) Eq(rhs *Fin) bool { return i.str() == rhs.str() }
 
 func (i Fin) Write(sb *str.Builder) { sb.Write(i.str()) }
 
-func I() Ini { return Ini{i: Ins{}} }
+func I() Ini { return Ini{} }
 
 func (i Ini) Ret() Fin {
-	i.i.ope = ORet()
+	i.ope = ORet()
 	return Fin(i)
 }
 
 func (i Ini) Sys() Fin {
-	i.i.ope = OSys()
+	i.ope = OSys()
 	return Fin(i)
 }
 
 func (i Ini) Call(name string) Fin {
-	i.i.ope = Ope{i: "call"}
-	i.i.toS = func() string { return name }
+	i.ope = Ope{i: "call"}
+	i.toS = func() string { return name }
 	return Fin(i)
 }
 
 func (i Ini) Je(name string) Fin {
-	i.i.ope = Ope{i: "je"}
-	i.i.toS = func() string { return name }
+	i.ope = Ope{i: "je"}
+	i.toS = func() string { return name }
 	return Fin(i)
 }
 
 func (i Ini) Jmp(name string) Fin {
-	i.i.ope = Ope{i: "jmp"}
-	i.i.toS = func() string { return name }
+	i.ope = Ope{i: "jmp"}
+	i.toS = func() string { return name }
 	return Fin(i)
 }
 
 func (i Ini) Label(name string) Fin {
-	i.i.label = name
+	i.label = name
 	return Fin(i)
 }
 
-func toOped(i Ins, o func() Ope) Oped {
+func toOped(i Ini, o func() Ope) Oped {
 	i.ope = o()
-	return Oped{i: i}
+	return Oped(i)
 }
 
-func opeDested(i Ins, o func() Ope) Dested {
+func opeDested(i Ini, o func() Ope) Dested {
 	i.ope = o()
-	return Dested{i: i}
+	return Dested(i)
 }
 
-func regFin(i Ins, o func() Reg) Fin {
+func regFin(i Dested, o func() Reg) Fin {
 	i.srcR = o()
-	return Fin{i: i}
+	return Fin(i)
 }
 
-func toDested(i Ins, o func() Reg) Dested {
+func toDested(i Oped, o func() Reg) Dested {
 	i.dest = o()
-	return Dested{i: i}
+	return Dested(i)
 }
 
-func (i Ini) Mov() Oped   { return toOped(i.i, OMov) }
-func (i Ini) Add() Oped   { return toOped(i.i, OAdd) }
-func (i Ini) Sub() Oped   { return toOped(i.i, OSub) }
-func (i Ini) Cmp() Oped   { return toOped(i.i, OCmp) }
-func (i Ini) Movzb() Oped { return toOped(i.i, OMovzb) }
+func (i Ini) Mov() Oped   { return toOped(i, OMov) }
+func (i Ini) Add() Oped   { return toOped(i, OAdd) }
+func (i Ini) Sub() Oped   { return toOped(i, OSub) }
+func (i Ini) Cmp() Oped   { return toOped(i, OCmp) }
+func (i Ini) Movzb() Oped { return toOped(i, OMovzb) }
 
-func (i Ini) Pop() Dested   { return opeDested(i.i, OPop) }
-func (i Ini) Push() Dested  { return opeDested(i.i, OPush) }
-func (i Ini) Mul() Dested   { return opeDested(i.i, OMul) }
-func (i Ini) Div() Dested   { return opeDested(i.i, ODiv) }
-func (i Ini) Sete() Dested  { return opeDested(i.i, OSete) }
-func (i Ini) Setne() Dested { return opeDested(i.i, OSetne) }
+func (i Ini) Pop() Dested   { return opeDested(i, OPop) }
+func (i Ini) Push() Dested  { return opeDested(i, OPush) }
+func (i Ini) Mul() Dested   { return opeDested(i, OMul) }
+func (i Ini) Div() Dested   { return opeDested(i, ODiv) }
+func (i Ini) Sete() Dested  { return opeDested(i, OSete) }
+func (i Ini) Setne() Dested { return opeDested(i, OSetne) }
 
 func (i Dested) P() Dested {
-	i.i.destP = true
+	i.destP = true
 	return i
 }
 
-func (i Oped) Rax() Dested { return toDested(i.i, Rax) }
-func (i Oped) Rdx() Dested { return toDested(i.i, Rdx) }
-func (i Oped) Rbp() Dested { return toDested(i.i, Rbp) }
-func (i Oped) Rsp() Dested { return toDested(i.i, Rsp) }
-func (i Oped) Rdi() Dested { return toDested(i.i, Rdi) }
-func (i Oped) Al() Dested  { return toDested(i.i, Al) }
-func (i Oped) Rsi() Dested { return toDested(i.i, Rsi) }
-func (i Oped) Rcx() Dested { return toDested(i.i, Rcx) }
-func (i Oped) R8() Dested  { return toDested(i.i, R8) }
-func (i Oped) R9() Dested  { return toDested(i.i, R9) }
-func (i Oped) R10() Dested { return toDested(i.i, R10) }
+func (i Oped) Rax() Dested { return toDested(i, Rax) }
+func (i Oped) Rdx() Dested { return toDested(i, Rdx) }
+func (i Oped) Rbp() Dested { return toDested(i, Rbp) }
+func (i Oped) Rsp() Dested { return toDested(i, Rsp) }
+func (i Oped) Rdi() Dested { return toDested(i, Rdi) }
+func (i Oped) Al() Dested  { return toDested(i, Al) }
+func (i Oped) Rsi() Dested { return toDested(i, Rsi) }
+func (i Oped) Rcx() Dested { return toDested(i, Rcx) }
+func (i Oped) R8() Dested  { return toDested(i, R8) }
+func (i Oped) R9() Dested  { return toDested(i, R9) }
+func (i Oped) R10() Dested { return toDested(i, R10) }
 
 func (i Dested) Val(s int) Fin {
-	i.i.srcI = s
+	i.srcI = s
 	return Fin(i)
 }
 
-func (i Dested) Rax() Fin { return regFin(i.i, Rax) }
-func (i Dested) Rdi() Fin { return regFin(i.i, Rdi) }
-func (i Dested) Rdx() Fin { return regFin(i.i, Rdx) }
-func (i Dested) Rbp() Fin { return regFin(i.i, Rbp) }
-func (i Dested) Rsp() Fin { return regFin(i.i, Rsp) }
-func (i Dested) Al() Fin  { return regFin(i.i, Al) }
-func (i Dested) Rsi() Fin { return regFin(i.i, Rsi) }
-func (i Dested) Rcx() Fin { return regFin(i.i, Rcx) }
-func (i Dested) R8() Fin  { return regFin(i.i, R8) }
-func (i Dested) R9() Fin  { return regFin(i.i, R9) }
-func (i Dested) R10() Fin { return regFin(i.i, R10) }
+func (i Dested) Rax() Fin { return regFin(i, Rax) }
+func (i Dested) Rdi() Fin { return regFin(i, Rdi) }
+func (i Dested) Rdx() Fin { return regFin(i, Rdx) }
+func (i Dested) Rbp() Fin { return regFin(i, Rbp) }
+func (i Dested) Rsp() Fin { return regFin(i, Rsp) }
+func (i Dested) Al() Fin  { return regFin(i, Al) }
+func (i Dested) Rsi() Fin { return regFin(i, Rsi) }
+func (i Dested) Rcx() Fin { return regFin(i, Rcx) }
+func (i Dested) R8() Fin  { return regFin(i, R8) }
+func (i Dested) R9() Fin  { return regFin(i, R9) }
+func (i Dested) R10() Fin { return regFin(i, R10) }
 
 func (i Fin) P() Fin {
-	i.i.srcP = true
+	i.srcP = true
 	return i
 }
