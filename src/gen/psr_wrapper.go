@@ -4,6 +4,7 @@ import (
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/ast"
 	"github.com/sxarp/c_compiler_go/src/psr"
+	"github.com/sxarp/c_compiler_go/src/tok"
 )
 
 type Compiler psr.Parser
@@ -35,28 +36,32 @@ func (c Compiler) SetEval(f func(nodes []*ast.AST, code asm.Code)) Compiler {
 	return Compiler(p(c).SetEval(f))
 }
 
+func tokenTypeToComp(tt *tok.TokenType) *Compiler {
+	return (*Compiler)(psr.TokenTypeToPsr(tt))
+}
+
 var (
-	Int   = (*Compiler)(psr.Int)
-	Intd  = (*Compiler)(psr.Intd)
-	Plus  = (*Compiler)(psr.Plus)
-	Minus = (*Compiler)(psr.Minus)
-	Mul   = (*Compiler)(psr.Mul)
-	Div   = (*Compiler)(psr.Div)
-	Eq    = (*Compiler)(psr.Eq)
-	Neq   = (*Compiler)(psr.Neq)
-	LPar  = (*Compiler)(psr.LPar)
-	RPar  = (*Compiler)(psr.RPar)
-	RBrc  = (*Compiler)(psr.RBrc)
-	LBrc  = (*Compiler)(psr.LBrc)
-	Amp   = (*Compiler)(psr.Amp)
-	Subs  = (*Compiler)(psr.Subs)
-	CVar  = (*Compiler)(psr.Var)
-	Semi  = (*Compiler)(psr.Semi)
-	Com   = (*Compiler)(psr.Com)
-	Ret   = (*Compiler)(psr.Ret)
-	If    = (*Compiler)(psr.If)
-	While = (*Compiler)(psr.While)
-	For   = (*Compiler)(psr.For)
-	Sys   = (*Compiler)(psr.Sys)
+	Int   = tokenTypeToComp(&tok.TInt)
+	Intd  = tokenTypeToComp(&tok.TIntd)
+	Plus  = tokenTypeToComp(&tok.TPlus)
+	Minus = tokenTypeToComp(&tok.TMinus)
+	Mul   = tokenTypeToComp(&tok.TMul)
+	Div   = tokenTypeToComp(&tok.TDiv)
+	Eq    = tokenTypeToComp(&tok.TEq)
+	Neq   = tokenTypeToComp(&tok.TNeq)
+	LPar  = tokenTypeToComp(&tok.TLPar)
+	RPar  = tokenTypeToComp(&tok.TRPar)
+	RBrc  = tokenTypeToComp(&tok.TRBrc)
+	LBrc  = tokenTypeToComp(&tok.TLBrc)
+	Amp   = tokenTypeToComp(&tok.TAmp)
+	Subs  = tokenTypeToComp(&tok.TSubs)
+	CVar  = tokenTypeToComp(&tok.TVar)
+	Semi  = tokenTypeToComp(&tok.TSemi)
+	Com   = tokenTypeToComp(&tok.TCom)
+	Ret   = tokenTypeToComp(&tok.TRet)
+	If    = tokenTypeToComp(&tok.TIf)
+	While = tokenTypeToComp(&tok.TWhile)
+	For   = tokenTypeToComp(&tok.TFor)
+	Sys   = tokenTypeToComp(&tok.TSys)
 	EOF   = (*Compiler)(psr.EOF)
 )

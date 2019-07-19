@@ -6,33 +6,18 @@ import (
 )
 
 var (
-	Plus  = tokenTypeToPsr(&tok.TPlus)
-	Minus = tokenTypeToPsr(&tok.TMinus)
-	Int   = tokenTypeToPsr(&tok.TInt)
-	LPar  = tokenTypeToPsr(&tok.TLPar)
-	RPar  = tokenTypeToPsr(&tok.TRPar)
-	Mul   = tokenTypeToPsr(&tok.TMul)
-	Div   = tokenTypeToPsr(&tok.TDiv)
-	Semi  = tokenTypeToPsr(&tok.TSemi)
-	Subs  = tokenTypeToPsr(&tok.TSubs)
-	Var   = tokenTypeToPsr(&tok.TVar)
-	Eq    = tokenTypeToPsr(&tok.TEq)
-	Neq   = tokenTypeToPsr(&tok.TNeq)
-	Com   = tokenTypeToPsr(&tok.TCom)
-	Ret   = tokenTypeToPsr(&tok.TRet)
-	LBrc  = tokenTypeToPsr(&tok.TLBrc)
-	RBrc  = tokenTypeToPsr(&tok.TRBrc)
-	If    = tokenTypeToPsr(&tok.TIf)
-	For   = tokenTypeToPsr(&tok.TFor)
-	While = tokenTypeToPsr(&tok.TWhile)
-	Intd  = tokenTypeToPsr(&tok.TIntd)
-	Amp   = tokenTypeToPsr(&tok.TAmp)
-	Sys   = tokenTypeToPsr(&tok.TSys)
-	EOF   = tokenTypeToPsrWOE(&tok.TEOF)
+	Plus  = TokenTypeToPsr(&tok.TPlus)
+	Minus = TokenTypeToPsr(&tok.TMinus)
+	Int   = TokenTypeToPsr(&tok.TInt)
+	LPar  = TokenTypeToPsr(&tok.TLPar)
+	RPar  = TokenTypeToPsr(&tok.TRPar)
+	Mul   = TokenTypeToPsr(&tok.TMul)
+	Div   = TokenTypeToPsr(&tok.TDiv)
+	EOF   = TokenTypeToPsrWOE(&tok.TEOF)
 )
 
 // To show informative error messages.
-func tokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
+func TokenTypeToPsrWOE(tt *tok.TokenType) *Parser {
 	return &Parser{Call: func(t []tok.Token) (ast.AST, []tok.Token) {
 
 		if len(t) == 0 {
