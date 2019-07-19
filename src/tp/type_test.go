@@ -30,7 +30,4 @@ func TestDeRef(t *testing.T) {
 
 	tipe, ok = tipe.DeRef()
 	h.ExpectEq(t, false, ok)
-
-	tipe, ok = tipe.DeRef()
-	h.ExpectEq(t, false, ok)
 }
