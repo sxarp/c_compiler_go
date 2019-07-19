@@ -38,11 +38,28 @@ func (pt ptrType) Size() int {
 	return 8
 }
 
-var Int = Type{eightBytesType("int")}
+type arrayType struct {
+	elmType TypeElm
+	length  int
+}
+
+func (at arrayType) ptrOf() TypeElm {
+	return at.elmType
+}
+
+func (at arrayType) literal() string {
+	return fmt.Sprintf("%d length array of %s", at.length, at.elmType.literal())
+}
+
+func (at arrayType) Size() int {
+	return at.length * at.elmType.Size()
+}
 
 type Type struct {
 	TypeElm
 }
+
+var Int = Type{eightBytesType("int")}
 
 func (tp Type) Eq(rhs Type) bool {
 	if lhsp := tp.ptrOf(); lhsp != nil {
