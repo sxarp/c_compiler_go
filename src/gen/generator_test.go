@@ -483,7 +483,7 @@ func TestVarDeclarer(t *testing.T) {
 		},
 	} {
 		st := newST()
-		compCode(t, varDeclarer(st, &null), c)
+		compCode(t, varDeclarer(st), c)
 		h.ExpectEq(t, true, st.RefOf("a").Type.Eq(varType))
 		varType = varType.Ptr()
 	}

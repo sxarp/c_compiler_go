@@ -253,7 +253,7 @@ func assigner(lv *Compiler, rv *Compiler) Compiler {
 		})
 }
 
-func varDeclarer(st *SymTable, delm *Compiler) Compiler {
+func varDeclarer(st *SymTable) Compiler {
 	var varType = tp.Int
 	vp := &varType
 
@@ -264,7 +264,7 @@ func varDeclarer(st *SymTable, delm *Compiler) Compiler {
 			}
 		})
 
-	return andIdt().And(Intd, false).And(&astrs, true).And(CVar, true).And(delm, false).SetEval(
+	return andIdt().And(Intd, false).And(&astrs, true).And(CVar, true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(nil)
@@ -435,7 +435,8 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 		asm.I().Mov().Rax().P().R9(),
 	}
 
-	varDeclare := varDeclarer(st, &null)
+	varDeclare := varDeclarer(st)
+
 	argv := andIdt().And(&varDeclare, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 
 		nodes[0].Eval(code)
@@ -506,11 +507,13 @@ func Generator() Compiler {
 		call = funcCaller(&expr)
 		syscall = syscaller(&expr)
 		semi := andIdt().And(&expr, true).And(Semi, false)
-		varDeclare := varDeclarer(st, Semi)
+
+		varDeclare := varDeclarer(st)
+		semiVarDeclare := andIdt().And(&varDeclare, true).And(Semi, false)
 
 		line, ret := andIdt().And(&semi, true).And(&popRax, true), returner(&semi)
 
-		body := orIdt().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&varDeclare).Or(&line)
+		body := orIdt().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&semiVarDeclare).Or(&line)
 		bodies := andIdt().Rep(&body)
 
 		ifex, forex, while = ifer(&expr, &bodies), forer(&expr, &bodies), whiler(&expr, &bodies)
