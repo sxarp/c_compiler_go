@@ -53,6 +53,8 @@ var (
 	RPar  = tokenTypeToComp(&tok.TRPar)
 	RBrc  = tokenTypeToComp(&tok.TRBrc)
 	LBrc  = tokenTypeToComp(&tok.TLBrc)
+	RSbr  = tokenTypeToComp(&tok.TRSbr)
+	LSbr  = tokenTypeToComp(&tok.TLSbr)
 	Amp   = tokenTypeToComp(&tok.TAmp)
 	Subs  = tokenTypeToComp(&tok.TSubs)
 	CVar  = tokenTypeToComp(&tok.TVar)
