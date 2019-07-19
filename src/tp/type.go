@@ -1,11 +1,11 @@
 package tp
 
 type Type struct {
-	ptrOf *Type
-	basic string
+	ptrOf   *Type
+	literal string
 }
 
-var Int = Type{basic: "int"}
+var Int = Type{literal: "int"}
 
 func (tp Type) Eq(rhs Type) bool {
 	if lhsp := tp.ptrOf; lhsp != nil {
@@ -22,7 +22,7 @@ func (tp Type) Eq(rhs Type) bool {
 		return false
 	}
 
-	return tp.basic == rhs.basic
+	return tp.literal == rhs.literal
 }
 
 func (tp Type) Ptr() Type {
