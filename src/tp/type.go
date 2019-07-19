@@ -61,6 +61,10 @@ type Type struct {
 
 var Int = Type{eightBytesType("int")}
 
+func Array(tp Type, length int) Type {
+	return Type{arrayType{tp.TypeElm, length}}
+}
+
 func (tp Type) Eq(rhs Type) bool {
 	if lhsp := tp.ptrOf(); lhsp != nil {
 		rhsp := rhs.ptrOf()

@@ -78,3 +78,12 @@ func (st *SymTable) DecOf(name string, t tp.Type) {
 		st.vars = append(st.vars, Var{tp: t, name: name})
 	}
 }
+
+func (st *SymTable) OverWrite(name string, nt tp.Type) {
+	if vp, ok := st.find(name); ok {
+		st.vars[vp.Seq] = Var{tp: nt, name: name}
+		return
+	}
+
+	panic("found no symbol to overwite")
+}
