@@ -273,6 +273,17 @@ func varDeclarer(st *SymTable) Compiler {
 		})
 }
 
+func arrayDeclarer(varDeclare *Compiler, st *SymTable) Compiler {
+	array := andIdt().And(LSbr, false).And(Int, true).And(RSbr, false).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 1)
+			v := st.Last()
+			st.OverWrite(v.Name, tp.Array(v.Type, nodes[0].Token.Vali()))
+		})
+
+	return andIdt().And(varDeclare, true).Rep(&array)
+}
+
 func returner(term *Compiler) Compiler {
 	retval := andIdt().And(term, true).And(&popRax, true)
 	ret := orIdt().Or(&retval).Or(&null)
@@ -509,7 +520,8 @@ func Generator() Compiler {
 		semi := andIdt().And(&expr, true).And(Semi, false)
 
 		varDeclare := varDeclarer(st)
-		semiVarDeclare := andIdt().And(&varDeclare, true).And(Semi, false)
+		arrayDeclare := arrayDeclarer(&varDeclare, st)
+		semiVarDeclare := andIdt().And(&arrayDeclare, true).And(Semi, false)
 
 		line, ret := andIdt().And(&semi, true).And(&popRax, true), returner(&semi)
 
