@@ -483,9 +483,46 @@ func TestVarDeclarer(t *testing.T) {
 		},
 	} {
 		st := newST()
-		compCode(t, varDeclarer(st, &null), c)
+		compCode(t, varDeclarer(st), c)
 		h.ExpectEq(t, true, st.RefOf("a").Type.Eq(varType))
 		varType = varType.Ptr()
+	}
+}
+
+func TestArrayDeclarer(t *testing.T) {
+	expectedTypes := []tp.Type{
+		tp.Int,
+		tp.Array(tp.Int, 3),
+		tp.Array(tp.Array(tp.Int.Ptr().Ptr(), 3), 4),
+	}
+
+	for i, c := range []psrTestCase{
+		{
+			"int a",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+		{
+			"int a[3]",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+		{
+			"int **a[3][4]",
+			[]asm.Fin{},
+			true,
+			"",
+		},
+	} {
+		st := newST()
+		varDeclare := varDeclarer(st)
+		compCode(t, arrayDeclarer(&varDeclare, st), c)
+
+		expectedType := expectedTypes[i]
+		h.ExpectEq(t, true, expectedType.Eq(st.Last().Type))
+		h.ExpectEq(t, expectedType.Size(), st.Last().Type.Size())
 	}
 }
 

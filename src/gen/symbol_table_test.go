@@ -19,4 +19,10 @@ func TestDecOf(t *testing.T) {
 	h.ExpectEq(t, 3, st.Count())
 	h.ExpectEq(t, 24, st.Allocated())
 	h.ExpectEq(t, 24, st.Last().Addr)
+
+	al := 3
+	st.OverWrite("b", tp.Array(tp.Int, al))
+	h.ExpectEq(t, 32, st.RefOf("b").Addr)
+	h.ExpectEq(t, 16+al*tp.Int.Size(), st.RefOf("c").Addr)
+	h.ExpectEq(t, 32, st.RefOf("b").Addr)
 }

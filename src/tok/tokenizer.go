@@ -143,6 +143,8 @@ var (
 	TRet   = TokenType{literal: "return"}
 	TLBrc  = TokenType{literal: "{"}
 	TRBrc  = TokenType{literal: "}"}
+	TLSbr  = TokenType{literal: "["}
+	TRSbr  = TokenType{literal: "]"}
 	TIf    = TokenType{literal: "if"}
 	TWhile = TokenType{literal: "while"}
 	TFor   = TokenType{literal: "for"}
@@ -152,7 +154,8 @@ var (
 )
 
 var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
-	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TSys, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc, &TAmp}
+	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TSys, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc,
+	&TLSbr, &TRSbr, &TAmp}
 
 func Tokenize(s string) []Token { return tokenize(TokenTypes, s) }
 

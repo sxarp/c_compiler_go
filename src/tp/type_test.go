@@ -30,7 +30,17 @@ func TestDeRef(t *testing.T) {
 
 	tipe, ok = tipe.DeRef()
 	h.ExpectEq(t, false, ok)
+}
 
-	tipe, ok = tipe.DeRef()
-	h.ExpectEq(t, false, ok)
+func TestArrayType(t *testing.T) {
+	length := 12
+	at := Type{arrayType{Int, length}}
+	h.ExpectEq(t, at.Size(), length*Int.Size())
+	h.ExpectEq(t, true, at.Eq(Int.Ptr()))
+
+	llength := 14
+	atat := Type{arrayType{at, llength}}
+
+	h.ExpectEq(t, atat.Size(), llength*length*Int.Size())
+	h.ExpectEq(t, true, atat.Eq(Int.Ptr().Ptr()))
 }

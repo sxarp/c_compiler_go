@@ -235,4 +235,15 @@ ret = syscall 1 1 val size;
 return ret;
 }
 `)
+
+	compareMF(t, "199",
+		`
+int main(){
+int a; a = 199;
+int array[10];
+int *ap;
+ap = &ap;
+return *(ap+11);
+}
+`)
 }

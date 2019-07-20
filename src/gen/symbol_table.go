@@ -15,6 +15,7 @@ type VarProj struct {
 	Addr int
 	Type tp.Type
 	Seq  int
+	Name string
 }
 
 type SymTable struct {
@@ -25,15 +26,13 @@ func newST() *SymTable {
 	return &SymTable{}
 }
 
-const bpSize = 8
-
 func (st *SymTable) find(name string) (*VarProj, bool) {
-	addr := bpSize
+	addr := 0
 	for i, v := range st.vars {
-		if v.name == name {
-			return &VarProj{Seq: i, Type: v.tp, Addr: addr}, true
-		}
 		addr += v.tp.Size()
+		if v.name == name {
+			return &VarProj{Seq: i, Type: v.tp, Addr: addr, Name: name}, true
+		}
 	}
 
 	return nil, false
@@ -77,4 +76,13 @@ func (st *SymTable) DecOf(name string, t tp.Type) {
 	} else {
 		st.vars = append(st.vars, Var{tp: t, name: name})
 	}
+}
+
+func (st *SymTable) OverWrite(name string, nt tp.Type) {
+	if vp, ok := st.find(name); ok {
+		st.vars[vp.Seq] = Var{tp: nt, name: name}
+		return
+	}
+
+	panic("found no symbol to overwite")
 }

@@ -10,7 +10,7 @@ type Parser struct {
 	Call func([]tok.Token) (ast.AST, []tok.Token)
 }
 
-func tokenTypeToPsr(tt *tok.TokenType) *Parser {
+func TokenTypeToPsr(tt *tok.TokenType) *Parser {
 	return &Parser{Call: func(t []tok.Token) (ast.AST, []tok.Token) {
 
 		if len(t) == 0 {
