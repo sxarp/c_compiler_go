@@ -109,3 +109,12 @@ func (tp Type) AddUnit() int {
 		panic("AddUnit cannot be determined.")
 	}
 }
+
+func (tp Type) IsArray() bool {
+	switch tp.TypeElm.(type) {
+	case arrayType:
+		return true
+	default:
+		return false
+	}
+}
