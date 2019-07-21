@@ -44,3 +44,9 @@ func TestArrayType(t *testing.T) {
 	h.ExpectEq(t, atat.Size(), llength*length*Int.Size())
 	h.ExpectEq(t, true, atat.Eq(Int.Ptr().Ptr()))
 }
+
+func TestIsArray(t *testing.T) {
+	h.ExpectEq(t, true, Type{arrayType{Int, 1}}.IsArray())
+	h.ExpectEq(t, true, Type{arrayType{Type{arrayType{Int, 1}}, 1}}.IsArray())
+	h.ExpectEq(t, false, Int.IsArray())
+}

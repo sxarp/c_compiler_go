@@ -313,14 +313,29 @@ func TestPtrAdder(t *testing.T) {
 
 	for _, c := range []psrTestCase{
 		{
-
 			"*(a+1)",
 			[]asm.Fin{
 				asm.I().Mov().Rax().Rbp(),
 				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
+				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
-				asm.I().Mov().Rax().Rax().P(),
+				asm.I().Mov().Rdi().Val(8),
+				asm.I().Mul().Rdi(),
+				asm.I().Push().Rax(),
+				asm.I().Pop().Rdi(),
+				asm.I().Pop().Rax(),
+				asm.I().Add().Rax().Rdi(),
+				asm.I().Push().Rax(),
+			},
+			true,
+			"",
+		},
+		{
+			"a[1]",
+			[]asm.Fin{
+				asm.I().Mov().Rax().Rbp(),
+				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
@@ -338,7 +353,9 @@ func TestPtrAdder(t *testing.T) {
 	} {
 		st := newST()
 		st.DecOf("a", tp.Int)
-		compCode(t, ptrAdder(st, &numInt), c)
+		lv := lvIdenter(st)
+		st.RefOf("a")
+		compCode(t, ptrAdder(st, &lv, &numInt), c)
 	}
 
 }
@@ -397,7 +414,7 @@ func TestRvIdent(t *testing.T) {
 		st := newST()
 		st.DecOf("a", tp.Int)
 		lvIdent := lvIdenter(st)
-		compCode(t, rvIdenter(&lvIdent), c)
+		compCode(t, rvIdenter(st, &lvIdent), c)
 	}
 
 }
@@ -712,9 +729,9 @@ func TestForer(t *testing.T) {
 				asm.I().Pop().Rax(),
 				asm.I().Cmp().Rax().Val(0),
 				asm.I().Je("for_end_0"),
+				asm.I().Push().Val(3),
 				asm.I().Push().Val(2),
 				asm.I().Pop().Rax(),
-				asm.I().Push().Val(3),
 				asm.I().Jmp("for_begin_0"),
 				asm.I().Label("for_end_0"),
 			},
@@ -921,7 +938,7 @@ int idp(int *a, int *b, int c) { return *a + *b + c}
 			ptrDeRef := ptrDeRefer(st, &lvIdent)
 
 			rvAddr := rvAddrer(&lvIdent)
-			rvIdent := rvIdenter(&ptrDeRef)
+			rvIdent := rvIdenter(st, &ptrDeRef)
 			rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
 			var caller Compiler

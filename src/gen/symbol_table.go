@@ -19,7 +19,8 @@ type VarProj struct {
 }
 
 type SymTable struct {
-	vars []Var
+	vars    []Var
+	lastRef string
 }
 
 func newST() *SymTable {
@@ -54,6 +55,7 @@ func (st *SymTable) Allocated() int {
 func (st *SymTable) RefOf(name string) *VarProj {
 	ref, ok := st.find(name)
 	if ok {
+		st.lastRef = name
 		return ref
 	}
 
@@ -67,6 +69,14 @@ func (st *SymTable) Last() *VarProj {
 	}
 
 	panic("SymTable is empty.")
+}
+
+func (st *SymTable) LastRef() string {
+	if lr := st.lastRef; lr == "" {
+		panic("lastRef value is empty")
+	} else {
+		return lr
+	}
 }
 
 // Declare symbol.

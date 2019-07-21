@@ -246,4 +246,37 @@ ap = &ap;
 return *(ap+11);
 }
 `)
+	compareMF(t, "199",
+		`
+int main(){
+int array[10];
+*(array + 9) = 199;
+return *(array+9);
+}`)
+
+	compareMF(t, "199",
+		`
+int main(){
+int array[10];
+array[9] = 199;
+return array[9];
+}`)
+
+	compareMF(t, "55",
+		`
+int main(){
+int array[10]; int sum; int n;
+
+for(n=0; n!=10; n=n+1){
+array[n] = n+1;
+}
+
+sum = 0;
+for(n=0; n!=10; n=n+1){
+sum = sum + array[n];
+}
+
+return sum;
+
+}`)
 }

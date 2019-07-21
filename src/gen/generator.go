@@ -139,28 +139,32 @@ func loadValer(st *SymTable, sym *string) Compiler {
 		})
 }
 
-func ptrAdder(st *SymTable, addv *Compiler) Compiler {
-	return andIdt().And(Mul, false).And(LPar, false).
-		And(CVar, true).And(Plus, false).And(addv, true).
-		And(RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
+func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
+	var size int
+
+	fetchSize := func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
-		val := st.RefOf(nodes[0].Token.Val())
-		size := val.Type.Size()
 
-		// load ptr
-		code.Ins(
-			asm.I().Mov().Rax().Rbp(),
-			asm.I().Sub().Rax().Val(val.Addr),
-			asm.I().Push().Rax())
+		// eval pointer value
+		nodes[0].Eval(code)
 
-		// load value
-		code.Ins(
-			asm.I().Pop().Rax(),
-			asm.I().Mov().Rax().Rax().P(),
-			asm.I().Push().Rax())
+		// then get the size of last referenced variable
+		size = st.RefOf(st.LastRef()).Type.Size()
 
 		// eval add val
 		nodes[1].Eval(code)
+	}
+
+	ptrAdded := andIdt().And(Mul, false).And(LPar, false).And(ptr, true).
+		And(Plus, false).And(addv, true).And(RPar, false).SetEval(fetchSize)
+
+	array := andIdt().And(ptr, true).And(LSbr, false).And(addv, true).And(RSbr, false).SetEval(fetchSize)
+
+	ptrArray := orIdt().Or(&ptrAdded).Or(&array)
+
+	return andIdt().And(&ptrArray, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 1)
+		nodes[0].Eval(code)
 
 		// multiple add val by size
 		code.Ins(
@@ -233,8 +237,18 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 		})
 }
 
-func rvIdenter(ptrDeRef *Compiler) Compiler {
-	return andIdt().And(ptrDeRef, true).And(&deRefer, true)
+func rvIdenter(st *SymTable, ptrDeRef *Compiler) Compiler {
+	return andIdt().And(ptrDeRef, true).And(&deRefer, true).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[0].Eval(code)
+
+			// skip dereference for array variables
+			// so that they behaves like pointer variables
+			if !st.RefOf(st.LastRef()).Type.IsArray() {
+				nodes[1].Eval(code)
+			}
+		})
 }
 
 func assigner(lv *Compiler, rv *Compiler) Compiler {
@@ -375,11 +389,11 @@ func forer(conditions, body *Compiler) Compiler {
 				asm.I().Cmp().Rax().Val(0),
 				asm.I().Je(end))
 
-			// Evaluate the increment part.
-			nodes[2].Eval(code)
-
 			// Evaluate the body part.
 			nodes[3].Eval(code)
+
+			// Evaluate the increment part.
+			nodes[2].Eval(code)
 
 			// Unconditional jump to begin.
 			code.Ins(asm.I().Jmp(begin))
@@ -498,12 +512,14 @@ func Generator() Compiler {
 		ptrDeRef := ptrDeRefer(st, &lvIdent)
 
 		rvAddr := rvAddrer(&lvIdent)
-		rvIdent := rvIdenter(&ptrDeRef)
+		rvIdent := rvIdenter(st, &ptrDeRef)
 		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
 		ptrAddVal := orIdt().Or(&numInt).Or(&rvIdent)
-		ptrAdd := ptrAdder(st, &ptrAddVal)
+		ptrAdd := ptrAdder(st, &rvVal, &ptrAddVal)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
+
+		leftVal := orIdt().Or(&ptrAdd).Or(&ptrDeRef)
 
 		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
 
@@ -513,7 +529,7 @@ func Generator() Compiler {
 		parTerm := andIdt().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
 		term = orIdt().Or(&num).Or(&parTerm)
 
-		assign := assigner(&ptrDeRef, &expr)
+		assign := assigner(&leftVal, &expr)
 		expr = orIdt().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		syscall = syscaller(&expr)
