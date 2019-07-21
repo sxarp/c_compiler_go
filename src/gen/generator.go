@@ -389,11 +389,11 @@ func forer(conditions, body *Compiler) Compiler {
 				asm.I().Cmp().Rax().Val(0),
 				asm.I().Je(end))
 
-			// Evaluate the increment part.
-			nodes[2].Eval(code)
-
 			// Evaluate the body part.
 			nodes[3].Eval(code)
+
+			// Evaluate the increment part.
+			nodes[2].Eval(code)
 
 			// Unconditional jump to begin.
 			code.Ins(asm.I().Jmp(begin))
