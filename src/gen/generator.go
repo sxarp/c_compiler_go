@@ -497,6 +497,8 @@ func Generator() Compiler {
 		ptrAdd := ptrAdder(st, &rvVal, &ptrAddVal)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
+		leftVal := orIdt().Or(&ptrAdd).Or(&ptrDeRef)
+
 		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
 
 		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
@@ -505,7 +507,7 @@ func Generator() Compiler {
 		parTerm := andIdt().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
 		term = orIdt().Or(&num).Or(&parTerm)
 
-		assign := assigner(&ptrDeRef, &expr)
+		assign := assigner(&leftVal, &expr)
 		expr = orIdt().Or(&assign).Or(&eqs)
 		call = funcCaller(&expr)
 		syscall = syscaller(&expr)
