@@ -139,25 +139,17 @@ func loadValer(st *SymTable, sym *string) Compiler {
 		})
 }
 
-func ptrAdder(st *SymTable, addv *Compiler) Compiler {
+func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 	return andIdt().And(Mul, false).And(LPar, false).
-		And(CVar, true).And(Plus, false).And(addv, true).
+		And(ptr, true).And(Plus, false).And(addv, true).
 		And(RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
-		val := st.RefOf(nodes[0].Token.Val())
-		size := val.Type.Size()
 
-		// load ptr
-		code.Ins(
-			asm.I().Mov().Rax().Rbp(),
-			asm.I().Sub().Rax().Val(val.Addr),
-			asm.I().Push().Rax())
+		// eval pointer value
+		nodes[0].Eval(code)
 
-		// load value
-		code.Ins(
-			asm.I().Pop().Rax(),
-			asm.I().Mov().Rax().Rax().P(),
-			asm.I().Push().Rax())
+		// then get the size of last referenced variable
+		size := st.RefOf(st.LastRef()).Type.Size()
 
 		// eval add val
 		nodes[1].Eval(code)
@@ -502,7 +494,7 @@ func Generator() Compiler {
 		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
 		ptrAddVal := orIdt().Or(&numInt).Or(&rvIdent)
-		ptrAdd := ptrAdder(st, &ptrAddVal)
+		ptrAdd := ptrAdder(st, &rvVal, &ptrAddVal)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
 		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler

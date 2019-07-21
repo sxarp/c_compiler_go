@@ -319,9 +319,6 @@ func TestPtrAdder(t *testing.T) {
 				asm.I().Mov().Rax().Rbp(),
 				asm.I().Sub().Rax().Val(tp.Int.Size() * 1),
 				asm.I().Push().Rax(),
-				asm.I().Pop().Rax(),
-				asm.I().Mov().Rax().Rax().P(),
-				asm.I().Push().Rax(),
 				asm.I().Push().Val(1),
 				asm.I().Pop().Rax(),
 				asm.I().Mov().Rdi().Val(8),
@@ -338,7 +335,9 @@ func TestPtrAdder(t *testing.T) {
 	} {
 		st := newST()
 		st.DecOf("a", tp.Int)
-		compCode(t, ptrAdder(st, &numInt), c)
+		lv := lvIdenter(st)
+		st.RefOf("a")
+		compCode(t, ptrAdder(st, &lv, &numInt), c)
 	}
 
 }
