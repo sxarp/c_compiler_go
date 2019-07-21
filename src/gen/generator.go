@@ -140,19 +140,31 @@ func loadValer(st *SymTable, sym *string) Compiler {
 }
 
 func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
-	return andIdt().And(Mul, false).And(LPar, false).
-		And(ptr, true).And(Plus, false).And(addv, true).
-		And(RPar, false).SetEval(func(nodes []*ast.AST, code asm.Code) {
+	var size int
+
+	fetchSize := func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 2)
 
 		// eval pointer value
 		nodes[0].Eval(code)
 
 		// then get the size of last referenced variable
-		size := st.RefOf(st.LastRef()).Type.Size()
+		size = st.RefOf(st.LastRef()).Type.Size()
 
 		// eval add val
 		nodes[1].Eval(code)
+	}
+
+	ptrAdded := andIdt().And(Mul, false).And(LPar, false).And(ptr, true).
+		And(Plus, false).And(addv, true).And(RPar, false).SetEval(fetchSize)
+
+	array := andIdt().And(ptr, true).And(LSbr, false).And(addv, true).And(RSbr, false).SetEval(fetchSize)
+
+	ptrArray := orIdt().Or(&ptrAdded).Or(&array)
+
+	return andIdt().And(&ptrArray, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 1)
+		nodes[0].Eval(code)
 
 		// multiple add val by size
 		code.Ins(

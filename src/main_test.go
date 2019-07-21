@@ -253,4 +253,12 @@ int array[10];
 *(array + 9) = 199;
 return *(array+9);
 }`)
+
+	compareMF(t, "199",
+		`
+int main(){
+int array[10];
+array[9] = 199;
+return array[9];
+}`)
 }
