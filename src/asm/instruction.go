@@ -160,6 +160,12 @@ func (i Ini) Je(name string) Fin {
 	return Fin(i)
 }
 
+func (i Ini) Jl(name string) Fin {
+	i.ope = Ope{i: "jl"}
+	i.toS = func() string { return name }
+	return Fin(i)
+}
+
 func (i Ini) Jmp(name string) Fin {
 	i.ope = Ope{i: "jmp"}
 	i.toS = func() string { return name }

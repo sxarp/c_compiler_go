@@ -41,6 +41,18 @@ func subber(term *Compiler) Compiler {
 	return binaryOperator(term, Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
 }
 
+func lter(term *Compiler) Compiler {
+	return binaryOperator(term, Lt, []asm.Fin{
+		asm.I().Cmp().Rax().Rdi(),
+		asm.I().Jl("0f"),
+		asm.I().Mov().Rax().Val(0),
+		asm.I().Jmp("1f"),
+		asm.I().Label("0"),
+		asm.I().Mov().Rax().Val(1),
+		asm.I().Label("1"),
+	})
+}
+
 func addsubs(term *Compiler) Compiler {
 	add, sub := adder(term), subber(term)
 	addsub := orIdt().Or(&add).Or(&sub)
@@ -76,8 +88,8 @@ func neqer(term *Compiler) Compiler {
 }
 
 func eqneqs(term *Compiler) Compiler {
-	eq, neq := eqer(term), neqer(term)
-	eqneq := orIdt().Or(&eq).Or(&neq)
+	eq, neq, lt := eqer(term), neqer(term), lter(term)
+	eqneq := orIdt().Or(&eq).Or(&neq).Or(&lt)
 	return andIdt().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
 }
 

@@ -49,6 +49,8 @@ var (
 	Div   = tokenTypeToComp(&tok.TDiv)
 	Eq    = tokenTypeToComp(&tok.TEq)
 	Neq   = tokenTypeToComp(&tok.TNeq)
+	Lt    = tokenTypeToComp(&tok.TLt)
+	Gt    = tokenTypeToComp(&tok.TGt)
 	LPar  = tokenTypeToComp(&tok.TLPar)
 	RPar  = tokenTypeToComp(&tok.TRPar)
 	RBrc  = tokenTypeToComp(&tok.TRBrc)

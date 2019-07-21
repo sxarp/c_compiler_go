@@ -140,6 +140,27 @@ func TestSubber(t *testing.T) {
 	}
 }
 
+func TestLter(t *testing.T) {
+
+	for _, c := range []psrTestCase{
+		{
+			"1<2",
+			[]asm.Fin{},
+			true,
+			"1",
+		},
+		{
+			"2<1",
+			[]asm.Fin{},
+			true,
+			"0",
+		},
+	} {
+		lt := lter(&numInt)
+		compCode(t, andIdt().And(&numInt, true).And(&lt, true), c)
+	}
+}
+
 func TestAddsubs(t *testing.T) {
 
 	for _, c := range []psrTestCase{

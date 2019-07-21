@@ -47,6 +47,7 @@ func TestByCamperation(t *testing.T) {
 	compare(t, "3", "return 1 - 2 + 3 -4 + 5;")
 	compare(t, "9", "return 1 + (2 - 1) - (1 - (3 + 5) );")
 	compare(t, "2", "return 1 * (2 - 1) - (1 - (10 / 5) );")
+	compare(t, "1", "return 1 < 2;")
 	compare(t, "28", "int a; return a = 28;")
 	compare(t, "15", "int z; return z = 28 + 13 - 13 * 2;")
 
@@ -267,12 +268,12 @@ return array[9];
 int main(){
 int array[10]; int sum; int n;
 
-for(n=0; n!=10; n=n+1){
+for(n=0; n<10; n=n+1){
 array[n] = n+1;
 }
 
 sum = 0;
-for(n=0; n!=10; n=n+1){
+for(n=0; n<10; n=n+1){
 sum = sum + array[n];
 }
 
