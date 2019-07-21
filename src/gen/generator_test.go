@@ -396,7 +396,7 @@ func TestRvIdent(t *testing.T) {
 		st := newST()
 		st.DecOf("a", tp.Int)
 		lvIdent := lvIdenter(st)
-		compCode(t, rvIdenter(&lvIdent), c)
+		compCode(t, rvIdenter(st, &lvIdent), c)
 	}
 
 }
@@ -920,7 +920,7 @@ int idp(int *a, int *b, int c) { return *a + *b + c}
 			ptrDeRef := ptrDeRefer(st, &lvIdent)
 
 			rvAddr := rvAddrer(&lvIdent)
-			rvIdent := rvIdenter(&ptrDeRef)
+			rvIdent := rvIdenter(st, &ptrDeRef)
 			rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
 			var caller Compiler

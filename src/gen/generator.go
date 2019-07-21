@@ -225,8 +225,18 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 		})
 }
 
-func rvIdenter(ptrDeRef *Compiler) Compiler {
-	return andIdt().And(ptrDeRef, true).And(&deRefer, true)
+func rvIdenter(st *SymTable, ptrDeRef *Compiler) Compiler {
+	return andIdt().And(ptrDeRef, true).And(&deRefer, true).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			checkNodeCount(nodes, 2)
+			nodes[0].Eval(code)
+
+			// skip dereference for array variables
+			// so that they behaves like pointer variables
+			if !st.RefOf(st.LastRef()).Type.IsArray() {
+				nodes[1].Eval(code)
+			}
+		})
 }
 
 func assigner(lv *Compiler, rv *Compiler) Compiler {
@@ -490,7 +500,7 @@ func Generator() Compiler {
 		ptrDeRef := ptrDeRefer(st, &lvIdent)
 
 		rvAddr := rvAddrer(&lvIdent)
-		rvIdent := rvIdenter(&ptrDeRef)
+		rvIdent := rvIdenter(st, &ptrDeRef)
 		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
 		ptrAddVal := orIdt().Or(&numInt).Or(&rvIdent)

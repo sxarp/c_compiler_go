@@ -250,7 +250,7 @@ return *(ap+11);
 		`
 int main(){
 int array[10];
-*(&array + 9) = 199;
-return *(&array+9);
+*(array + 9) = 199;
+return *(array+9);
 }`)
 }
