@@ -528,13 +528,12 @@ func Generator() Compiler {
 		rvIdent := rvIdenter(st, &ptrDeRef)
 		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
-		ptrAddVal := orIdt().Or(&numInt).Or(&rvIdent)
-		ptrAdd := ptrAdder(st, &rvVal, &ptrAddVal)
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
+
+		ptrAdd := ptrAdder(st, &rvVal, &expr)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
 		leftVal := orIdt().Or(&ptrAdd).Or(&ptrDeRef)
-
-		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
 
 		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
 		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)

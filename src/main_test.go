@@ -289,4 +289,12 @@ ap = array;
 array[3]=55;
 return ap[3];
 }`)
+
+	compareMF(t, "55",
+		`
+int main(){
+int array[4]; int n; n = 1;
+array[n+2]=55;
+return array[n+2];
+}`)
 }
