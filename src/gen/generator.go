@@ -160,8 +160,9 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 		// eval pointer value
 		nodes[0].Eval(code)
 
-		// then get the size of last referenced variable
-		size = st.RefOf(st.LastRef()).Type.Size()
+		// then get the size of last referenced pointer variable
+		elm, _ := st.RefOf(st.LastRef()).Type.DeRef()
+		size = elm.Size()
 
 		// eval add val
 		nodes[1].Eval(code)

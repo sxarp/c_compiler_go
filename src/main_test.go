@@ -280,4 +280,13 @@ sum = sum + array[n];
 return sum;
 
 }`)
+
+	compareMF(t, "55",
+		`
+int main(){
+int array[4]; int* ap;
+ap = array;
+array[3]=55;
+return ap[3];
+}`)
 }
