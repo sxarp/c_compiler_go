@@ -139,6 +139,8 @@ var (
 	TSemi  = TokenType{literal: ";"}
 	TEq    = TokenType{literal: "=="}
 	TNeq   = TokenType{literal: "!="}
+	TLt    = TokenType{literal: "<"}
+	TGt    = TokenType{literal: ">"}
 	TCom   = TokenType{literal: ","}
 	TRet   = TokenType{literal: "return"}
 	TLBrc  = TokenType{literal: "{"}
@@ -153,7 +155,7 @@ var (
 	TSys   = TokenType{literal: "syscall"}
 )
 
-var TokenTypes = []*TokenType{&TEq, &TNeq, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
+var TokenTypes = []*TokenType{&TEq, &TNeq, &TLt, &TGt, &TSubs, &TPlus, &TMinus, &TInt, &TLPar, &TRPar,
 	&TMul, &TRet, &TDiv, &TIf, &TWhile, &TFor, &TIntd, &TSys, &TVar, &TSemi, &TCom, &TLBrc, &TRBrc,
 	&TLSbr, &TRSbr, &TAmp}
 

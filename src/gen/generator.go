@@ -41,6 +41,18 @@ func subber(term *Compiler) Compiler {
 	return binaryOperator(term, Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
 }
 
+func lter(term *Compiler) Compiler {
+	return binaryOperator(term, Lt, []asm.Fin{
+		asm.I().Cmp().Rax().Rdi(),
+		asm.I().Jl("0f"),
+		asm.I().Mov().Rax().Val(0),
+		asm.I().Jmp("1f"),
+		asm.I().Label("0"),
+		asm.I().Mov().Rax().Val(1),
+		asm.I().Label("1"),
+	})
+}
+
 func addsubs(term *Compiler) Compiler {
 	add, sub := adder(term), subber(term)
 	addsub := orIdt().Or(&add).Or(&sub)
@@ -76,8 +88,8 @@ func neqer(term *Compiler) Compiler {
 }
 
 func eqneqs(term *Compiler) Compiler {
-	eq, neq := eqer(term), neqer(term)
-	eqneq := orIdt().Or(&eq).Or(&neq)
+	eq, neq, lt := eqer(term), neqer(term), lter(term)
+	eqneq := orIdt().Or(&eq).Or(&neq).Or(&lt)
 	return andIdt().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
 }
 
@@ -148,8 +160,9 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 		// eval pointer value
 		nodes[0].Eval(code)
 
-		// then get the size of last referenced variable
-		size = st.RefOf(st.LastRef()).Type.Size()
+		// then get the size of last referenced pointer variable
+		elm, _ := st.RefOf(st.LastRef()).Type.DeRef()
+		size = elm.Size()
 
 		// eval add val
 		nodes[1].Eval(code)
@@ -515,13 +528,12 @@ func Generator() Compiler {
 		rvIdent := rvIdenter(st, &ptrDeRef)
 		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
 
-		ptrAddVal := orIdt().Or(&numInt).Or(&rvIdent)
-		ptrAdd := ptrAdder(st, &rvVal, &ptrAddVal)
+		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
+
+		ptrAdd := ptrAdder(st, &rvVal, &expr)
 		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
 
 		leftVal := orIdt().Or(&ptrAdd).Or(&ptrDeRef)
-
-		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
 
 		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
 		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)

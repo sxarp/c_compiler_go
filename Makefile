@@ -33,3 +33,6 @@ stop:
 
 attach:
 	docker exec -it $$(docker ps -f name=c_compiler -q) /bin/bash
+
+exec:
+	$(dcex) /bin/bash -c "go run ./src < ${SRC_PATH} > ./tmp/out.s; gcc -o ./tmp/out.o ./tmp/out.s; ./tmp/out.o"
