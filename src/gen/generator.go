@@ -30,7 +30,6 @@ func binaryOperator(term *Compiler, operator *Compiler, insts []asm.Fin) Compile
 			code.Ins(insts...)
 			code.Ins(asm.I().Push().Rax())
 		})
-
 }
 
 func adder(term *Compiler) Compiler {
@@ -54,9 +53,9 @@ func lter(term *Compiler) Compiler {
 }
 
 func addsubs(term *Compiler) Compiler {
-	add, sub := adder(term), subber(term)
-	addsub := orIdt().Or(&add).Or(&sub)
-	return andIdt().And(term, true).Rep(&addsub).Trans(ast.PopSingle)
+	return andIdt().And(term, true).
+		Rep(orIdt().Or(adder(term).P(), subber(term).P()).P()).
+		Trans(ast.PopSingle)
 }
 
 func muler(term *Compiler) Compiler {
@@ -68,9 +67,9 @@ func diver(term *Compiler) Compiler {
 }
 
 func muldivs(term *Compiler) Compiler {
-	mul, div := muler(term), diver(term)
-	muldiv := orIdt().Or(&mul).Or(&div)
-	return andIdt().And(term, true).Rep(&muldiv).Trans(ast.PopSingle)
+	return andIdt().And(term, true).
+		Rep(orIdt().Or(muler(term).P(), diver(term).P()).P()).
+		Trans(ast.PopSingle)
 }
 
 func eqer(term *Compiler) Compiler {
@@ -88,9 +87,9 @@ func neqer(term *Compiler) Compiler {
 }
 
 func eqneqs(term *Compiler) Compiler {
-	eq, neq, lt := eqer(term), neqer(term), lter(term)
-	eqneq := orIdt().Or(&eq).Or(&neq).Or(&lt)
-	return andIdt().And(term, true).Rep(&eqneq).Trans(ast.PopSingle)
+	return andIdt().And(term, true).
+		Rep(orIdt().Or(eqer(term).P(), neqer(term).P(), lter(term).P()).P()).
+		Trans(ast.PopSingle)
 }
 
 func syscaller(term *Compiler) Compiler {
@@ -170,10 +169,8 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 
 	ptrAdded := andIdt().And(Mul, false).And(LPar, false).And(ptr, true).
 		And(Plus, false).And(addv, true).And(RPar, false).SetEval(fetchSize)
-
 	array := andIdt().And(ptr, true).And(LSbr, false).And(addv, true).And(RSbr, false).SetEval(fetchSize)
-
-	ptrArray := orIdt().Or(&ptrAdded).Or(&array)
+	ptrArray := orIdt().Or(&ptrAdded, &array)
 
 	return andIdt().And(&ptrArray, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 		checkNodeCount(nodes, 1)
@@ -197,9 +194,7 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 
 func lvIdenter(st *SymTable) Compiler {
 	var sym string
-	loadVal := loadValer(st, &sym)
-
-	return andIdt().And(CVar, true).And(&loadVal, true).SetEval(
+	return andIdt().And(CVar, true).And(loadValer(st, &sym).P(), true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			sym = nodes[0].Token.Val()
@@ -219,10 +214,12 @@ var deRefer = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 })
 
 func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
-	astr := andIdt().And(Mul, false).And(&deRefer, true)
+	var (
+		deRefCount int
+		sym        string
+	)
 
-	var deRefCount int
-	astrs := andIdt().Rep(&astr).SetEval(
+	astrs := andIdt().Rep(andIdt().And(Mul, false).And(&deRefer, true).P()).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			deRefCount = len(nodes)
 
@@ -231,10 +228,7 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 			}
 		})
 
-	var sym string
-	loadVal := loadValer(st, &sym)
-
-	return andIdt().And(&astrs, true).And(CVar, true).And(&loadVal, true).SetEval(
+	return andIdt().And(&astrs, true).And(CVar, true).And(loadValer(st, &sym).P(), true).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			sym = nodes[1].Token.Val()
 			symType := st.RefOf(sym).Type
@@ -257,7 +251,7 @@ func rvIdenter(st *SymTable, ptrDeRef *Compiler) Compiler {
 			nodes[0].Eval(code)
 
 			// skip dereference for array variables
-			// so that they behaves like pointer variables
+			// so that they behave like pointer variables
 			if !st.RefOf(st.LastRef()).Type.IsArray() {
 				nodes[1].Eval(code)
 			}
@@ -276,7 +270,6 @@ func assigner(lv *Compiler, rv *Compiler) Compiler {
 				asm.I().Pop().Rax(),           // load rv to rax
 				asm.I().Mov().Rdi().P().Rax(), // mv rax to [lv]
 				asm.I().Push().Rax())
-
 		})
 }
 
@@ -295,7 +288,6 @@ func varDeclarer(st *SymTable) Compiler {
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(nil)
-
 			st.DecOf(nodes[1].Token.Val(), varType)
 		})
 }
@@ -312,9 +304,9 @@ func arrayDeclarer(varDeclare *Compiler, st *SymTable) Compiler {
 }
 
 func returner(term *Compiler) Compiler {
-	retval := andIdt().And(term, true).And(&popRax, true)
-	ret := orIdt().Or(&retval).Or(&null)
-	return andIdt().And(Ret, false).And(&ret, true).And(&epilogue, true)
+	return andIdt().And(Ret, false).
+		And(orIdt().Or(andIdt().And(term, true).And(&popRax, true).P(), &null).P(), true).
+		And(&epilogue, true)
 }
 
 var ifcount int
@@ -374,7 +366,7 @@ func whiler(condition, body *Compiler) Compiler {
 var forcount int
 
 func forer(conditions, body *Compiler) Compiler {
-	nullCond := orIdt().Or(conditions).Or(&null)
+	nullCond := orIdt().Or(conditions, &null)
 	semiCond := andIdt().And(&nullCond, true).And(Semi, false)
 	ini := andIdt().And(&semiCond, true).And(&popRax, true)
 	incr := andIdt().And(&nullCond, true).And(&popRax, true)
@@ -420,7 +412,6 @@ func forer(conditions, body *Compiler) Compiler {
 func funcCaller(term *Compiler) Compiler {
 	funcName := andIdt().And(CVar, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
-
 	commed := andIdt().And(Com, false).And(term, true).Trans(ast.PopSingle)
 
 	argRegs := []asm.Dested{
@@ -432,22 +423,21 @@ func funcCaller(term *Compiler) Compiler {
 		asm.I().Mov().R9(),
 	}
 
-	argvs := andIdt().And(term, true).Rep(&commed).SetEval(func(nodes []*ast.AST, code asm.Code) {
-		if len(nodes) > 6 {
-			panic("too many arguments")
-		}
+	args := orIdt().Or(andIdt().And(term, true).Rep(&commed).SetEval(
+		func(nodes []*ast.AST, code asm.Code) {
+			if len(nodes) > 6 {
+				panic("too many arguments")
+			}
 
-		// Evaluate args from right to left and push into the stack.
-		for i := range nodes {
-			nodes[len(nodes)-i-1].Eval(code)
-		}
+			// Evaluate args from right to left and push into the stack.
+			for i := range nodes {
+				nodes[len(nodes)-i-1].Eval(code)
+			}
 
-		for i := range nodes {
-			code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i].Rax())
-		}
-	})
-
-	args := orIdt().Or(&argvs).Or(&null)
+			for i := range nodes {
+				code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i].Rax())
+			}
+		}).P(), &null)
 
 	return andIdt().And(&funcName, true).And(LPar, false).And(&args, true).And(RPar, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
@@ -461,9 +451,6 @@ func funcCaller(term *Compiler) Compiler {
 func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 	var st = new(SymTable)
 
-	funcName := andIdt().And(CVar, true).
-		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Label(nodes[0].Token.Val())) })
-
 	argRegs := []asm.Fin{
 		asm.I().Mov().Rax().P().Rdi(),
 		asm.I().Mov().Rax().P().Rsi(),
@@ -473,9 +460,11 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 		asm.I().Mov().Rax().P().R9(),
 	}
 
-	varDeclare := varDeclarer(st)
-
-	argv := andIdt().And(&varDeclare, true).SetEval(func(nodes []*ast.AST, code asm.Code) {
+	funcLabel := andIdt().And(CVar, true).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
+			code.Ins(asm.I().Label(nodes[0].Token.Val()))
+		})
+	argv := andIdt().And(varDeclarer(st).P(), true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 
 		nodes[0].Eval(code)
 
@@ -490,15 +479,12 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 			asm.I().Sub().Rax().Val(v.Addr),
 			argRegs[v.Seq])
 	})
+	args := orIdt().Or(andIdt().And(&argv, true).
+		Rep(andIdt().And(Com, false).And(&argv, true).Trans(ast.PopSingle).P()).P(), &null)
 
-	commed := andIdt().And(Com, false).And(&argv, true).Trans(ast.PopSingle)
-	argvs := andIdt().And(&argv, true).Rep(&commed)
-	args := orIdt().Or(&argvs).Or(&null)
-	body := bodyer(st)
-	prologue := prologuer(st)
-
-	return andIdt().And(Intd, false).And(&funcName, true).And(LPar, false).And(&args, true).And(RPar, false).
-		And(&prologue, true).And(LBrc, false).And(&body, true).And(RBrc, false).
+	return andIdt().And(Intd, false).And(&funcLabel, true).
+		And(LPar, false).And(&args, true).And(RPar, false).
+		And(prologuer(st).P(), true).And(LBrc, false).And(bodyer(st).P(), true).And(RBrc, false).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 4)
 
@@ -521,48 +507,27 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 
 func Generator() Compiler {
 	body := func(st *SymTable) Compiler {
-		lvIdent := lvIdenter(st)
-		ptrDeRef := ptrDeRefer(st, &lvIdent)
+		var term, muls, adds, expr, bodies Compiler
 
-		rvAddr := rvAddrer(&lvIdent)
-		rvIdent := rvIdenter(st, &ptrDeRef)
-		rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
+		ptrRef := ptrDeRefer(st, lvIdenter(st).P())
+		val := orIdt().Or(rvAddrer(lvIdenter(st).P()).P(), rvIdenter(st, &ptrRef).P())
+		adds, muls, ptrAdd := addsubs(&muls), muldivs(&term), ptrAdder(st, &val, &expr)
 
-		var num, term, muls, adds, expr, eqs, call, ifex, while, forex, syscall Compiler
-
-		ptrAdd := ptrAdder(st, &rvVal, &expr)
-		rvPtrAdder := andIdt().And(&ptrAdd, true).And(&deRefer, true)
-
-		leftVal := orIdt().Or(&ptrAdd).Or(&ptrDeRef)
-
-		num = orIdt().Or(&rvPtrAdder).Or(&numInt).Or(&syscall).Or(&call).Or(&rvVal)
-		eqs, adds, muls = eqneqs(&adds), addsubs(&muls), muldivs(&term)
-
-		parTerm := andIdt().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle)
-		term = orIdt().Or(&num).Or(&parTerm)
-
-		assign := assigner(&leftVal, &expr)
-		expr = orIdt().Or(&assign).Or(&eqs)
-		call = funcCaller(&expr)
-		syscall = syscaller(&expr)
+		term = orIdt().Or(
+			andIdt().And(&ptrAdd, true).And(&deRefer, true).P(),
+			&numInt, syscaller(&expr).P(), funcCaller(&expr).P(), &val,
+			andIdt().And(LPar, false).And(&adds, true).And(RPar, false).Trans(ast.PopSingle).P())
+		expr = orIdt().Or(assigner(orIdt().Or(&ptrAdd, &ptrRef).P(), &expr).P(), eqneqs(&adds).P())
 		semi := andIdt().And(&expr, true).And(Semi, false)
 
-		varDeclare := varDeclarer(st)
-		arrayDeclare := arrayDeclarer(&varDeclare, st)
-		semiVarDeclare := andIdt().And(&arrayDeclare, true).And(Semi, false)
-
-		line, ret := andIdt().And(&semi, true).And(&popRax, true), returner(&semi)
-
-		body := orIdt().Or(&ifex).Or(&forex).Or(&while).Or(&ret).Or(&semiVarDeclare).Or(&line)
-		bodies := andIdt().Rep(&body)
-
-		ifex, forex, while = ifer(&expr, &bodies), forer(&expr, &bodies), whiler(&expr, &bodies)
+		bodies = andIdt().Rep(orIdt().Or(
+			ifer(&expr, &bodies).P(), forer(&expr, &bodies).P(),
+			whiler(&expr, &bodies).P(), returner(&semi).P(),
+			andIdt().And(arrayDeclarer(varDeclarer(st).P(), st).P(), true).And(Semi, false).P(),
+			andIdt().And(&semi, true).And(&popRax, true).P()).P())
 
 		return andIdt().And(&bodies, true)
 	}
 
-	function := funcDefiner(body)
-	functions := andIdt().Rep(&function)
-
-	return andIdt().And(&functions, true).And(EOF, false)
+	return andIdt().And(andIdt().Rep(funcDefiner(body).P()).P(), true).And(EOF, false)
 }
