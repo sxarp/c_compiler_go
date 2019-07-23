@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/sxarp/c_compiler_go/src/asm"
 	"github.com/sxarp/c_compiler_go/src/em"
@@ -10,9 +14,20 @@ import (
 )
 
 func main() {
-	r := ""
-	asm := compile(r)
+	r := bufio.NewReader(os.Stdin)
+	b, err := ioutil.ReadAll(r)
+	fatal(err)
+
+	src := string(b)
+	asm := compile(src)
+
 	fmt.Println(asm)
+}
+
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func compile(tcode string) string {
