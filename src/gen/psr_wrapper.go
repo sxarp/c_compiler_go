@@ -20,8 +20,12 @@ func (c Compiler) And(cp *Compiler, addNode bool) Compiler {
 	return Compiler(p(c).And(pp(cp), addNode))
 }
 
-func (c Compiler) Or(cp *Compiler) Compiler {
-	return Compiler(p(c).Or(pp(cp)))
+func (c Compiler) Or(cps ...*Compiler) Compiler {
+	for _, cp := range cps {
+		c = Compiler(p(c).Or(pp(cp)))
+	}
+
+	return c
 }
 
 func (c Compiler) Rep(cp *Compiler) Compiler {
@@ -34,6 +38,10 @@ func (c Compiler) Trans(f func(ast.AST) ast.AST) Compiler {
 
 func (c Compiler) SetEval(f func(nodes []*ast.AST, code asm.Code)) Compiler {
 	return Compiler(p(c).SetEval(f))
+}
+
+func (c Compiler) P() *Compiler {
+	return &c
 }
 
 func tokenTypeToComp(tt *tok.TokenType) *Compiler {
