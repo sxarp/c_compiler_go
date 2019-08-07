@@ -13,7 +13,7 @@ jobs:
       - run:
           name: lint
           command: |
-            make lint-ci
+            make lint-for-ci
       - run:
           name: test
           command: |
