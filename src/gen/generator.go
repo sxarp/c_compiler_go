@@ -16,8 +16,8 @@ func checkNodeCount(nodes []*ast.AST, count int) {
 
 var numInt = andIdt().And(Int, true).
 	SetEval(func(nodes []*ast.AST, code asm.Code) {
-		i := nodes[0].Token.Vali()
-		code.Ins(asm.I().Push().Val(i))
+		n := nodes[0].Token.Vali()
+		code.Ins(i().Push().Val(n))
 	})
 
 func binaryOperator(term *Compiler, operator *Compiler, insts []asm.Fin) Compiler {
@@ -26,29 +26,29 @@ func binaryOperator(term *Compiler, operator *Compiler, insts []asm.Fin) Compile
 			checkNodeCount(nodes, 1)
 			nodes[0].Eval(code)
 
-			code.Ins(asm.I().Pop().Rdi(), asm.I().Pop().Rax())
+			code.Ins(i().Pop().Rdi(), i().Pop().Rax())
 			code.Ins(insts...)
-			code.Ins(asm.I().Push().Rax())
+			code.Ins(i().Push().Rax())
 		})
 }
 
 func adder(term *Compiler) Compiler {
-	return binaryOperator(term, Plus, []asm.Fin{asm.I().Add().Rax().Rdi()})
+	return binaryOperator(term, Plus, []asm.Fin{i().Add().Rax().Rdi()})
 }
 
 func subber(term *Compiler) Compiler {
-	return binaryOperator(term, Minus, []asm.Fin{asm.I().Sub().Rax().Rdi()})
+	return binaryOperator(term, Minus, []asm.Fin{i().Sub().Rax().Rdi()})
 }
 
 func lter(term *Compiler) Compiler {
 	return binaryOperator(term, Lt, []asm.Fin{
-		asm.I().Cmp().Rax().Rdi(),
-		asm.I().Jl("0f"),
-		asm.I().Mov().Rax().Val(0),
-		asm.I().Jmp("1f"),
-		asm.I().Label("0"),
-		asm.I().Mov().Rax().Val(1),
-		asm.I().Label("1"),
+		i().Cmp().Rax().Rdi(),
+		i().Jl("0f"),
+		i().Mov().Rax().Val(0),
+		i().Jmp("1f"),
+		i().Label("0"),
+		i().Mov().Rax().Val(1),
+		i().Label("1"),
 	})
 }
 
@@ -59,11 +59,11 @@ func addsubs(term *Compiler) Compiler {
 }
 
 func muler(term *Compiler) Compiler {
-	return binaryOperator(term, Mul, []asm.Fin{asm.I().Mul().Rdi()})
+	return binaryOperator(term, Mul, []asm.Fin{i().Mul().Rdi()})
 }
 
 func diver(term *Compiler) Compiler {
-	return binaryOperator(term, Div, []asm.Fin{asm.I().Mov().Rdx().Val(0), asm.I().Div().Rdi()})
+	return binaryOperator(term, Div, []asm.Fin{i().Mov().Rdx().Val(0), i().Div().Rdi()})
 }
 
 func muldivs(term *Compiler) Compiler {
@@ -74,16 +74,16 @@ func muldivs(term *Compiler) Compiler {
 
 func eqer(term *Compiler) Compiler {
 	return binaryOperator(term, Eq, []asm.Fin{
-		asm.I().Cmp().Rdi().Rax(),
-		asm.I().Sete().Al(),
-		asm.I().Movzb().Rax().Al()})
+		i().Cmp().Rdi().Rax(),
+		i().Sete().Al(),
+		i().Movzb().Rax().Al()})
 }
 
 func neqer(term *Compiler) Compiler {
 	return binaryOperator(term, Neq, []asm.Fin{
-		asm.I().Cmp().Rdi().Rax(),
-		asm.I().Setne().Al(),
-		asm.I().Movzb().Rax().Al()})
+		i().Cmp().Rdi().Rax(),
+		i().Setne().Al(),
+		i().Movzb().Rax().Al()})
 }
 
 func eqneqs(term *Compiler) Compiler {
@@ -95,58 +95,58 @@ func eqneqs(term *Compiler) Compiler {
 func syscaller(term *Compiler) Compiler {
 	// Registers used to pass arguments to system call
 	regs := []asm.Fin{
-		asm.I().Pop().Rdi(),
-		asm.I().Pop().Rsi(),
-		asm.I().Pop().Rdx(),
-		asm.I().Pop().R10(),
-		asm.I().Pop().R8(),
-		asm.I().Pop().R9(),
+		i().Pop().Rdi(),
+		i().Pop().Rsi(),
+		i().Pop().Rdx(),
+		i().Pop().R10(),
+		i().Pop().R8(),
+		i().Pop().R9(),
 	}
 
 	return andIdt().And(Sys, false).And(&numInt, true).Rep(term).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 
-			for i, node := range nodes[1:] {
+			for j, node := range nodes[1:] {
 				node.Eval(code)
-				code.Ins(regs[i])
+				code.Ins(regs[j])
 			}
 
 			// Set syscall number
 			nodes[0].Eval(code)
-			code.Ins(asm.I().Pop().Rax())
+			code.Ins(i().Pop().Rax())
 			// Call syscall instruction
-			code.Ins(asm.I().Sys())
+			code.Ins(i().Sys())
 			// Push returned value from system call
-			code.Ins(asm.I().Push().Rax())
+			code.Ins(i().Push().Rax())
 		})
 }
 
 func prologuer(st *SymTable) Compiler {
 	return andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 		code.Ins(
-			asm.I().Push().Rbp(),
-			asm.I().Mov().Rbp().Rsp(),
-			asm.I().Sub().Rsp().Val(st.Allocated()))
+			i().Push().Rbp(),
+			i().Mov().Rbp().Rsp(),
+			i().Sub().Rsp().Val(st.Allocated()))
 	})
 }
 
 var epilogue = andIdt().SetEval(
 	func(nodes []*ast.AST, code asm.Code) {
 		code.Ins(
-			asm.I().Mov().Rsp().Rbp(),
-			asm.I().Pop().Rbp(),
-			asm.I().Ret())
+			i().Mov().Rsp().Rbp(),
+			i().Pop().Rbp(),
+			i().Ret())
 	})
 
-var popRax = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Pop().Rax()) })
+var popRax = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(i().Pop().Rax()) })
 
 func loadValer(st *SymTable, sym *string) Compiler {
 	return andIdt().SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			code.Ins(
-				asm.I().Mov().Rax().Rbp(),
-				asm.I().Sub().Rax().Val(st.RefOf(*sym).Addr),
-				asm.I().Push().Rax())
+				i().Mov().Rax().Rbp(),
+				i().Sub().Rax().Val(st.RefOf(*sym).Addr),
+				i().Push().Rax())
 		})
 }
 
@@ -178,17 +178,17 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 
 		// multiple add val by size
 		code.Ins(
-			asm.I().Pop().Rax(),
-			asm.I().Mov().Rdi().Val(size),
-			asm.I().Mul().Rdi(),
-			asm.I().Push().Rax())
+			i().Pop().Rax(),
+			i().Mov().Rdi().Val(size),
+			i().Mul().Rdi(),
+			i().Push().Rax())
 
 		// add both values and push
 		code.Ins(
-			asm.I().Pop().Rdi(),
-			asm.I().Pop().Rax(),
-			asm.I().Add().Rax().Rdi(),
-			asm.I().Push().Rax())
+			i().Pop().Rdi(),
+			i().Pop().Rax(),
+			i().Add().Rax().Rdi(),
+			i().Push().Rax())
 	})
 }
 
@@ -208,9 +208,9 @@ func rvAddrer(lvIdent *Compiler) Compiler {
 
 var deRefer = andIdt().SetEval(func(nodes []*ast.AST, code asm.Code) {
 	code.Ins(
-		asm.I().Pop().Rax(),
-		asm.I().Mov().Rax().Rax().P(),
-		asm.I().Push().Rax())
+		i().Pop().Rax(),
+		i().Mov().Rax().Rax().P(),
+		i().Push().Rax())
 })
 
 func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
@@ -236,7 +236,7 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 			nodes[2].Eval(code)
 			nodes[0].Eval(code)
 
-			for i := 0; i < deRefCount; i++ {
+			for j := 0; j < deRefCount; j++ {
 				if _, ok := symType.DeRef(); !ok {
 					panic(fmt.Sprintf("Invalid pointer variable dereference of %s.", sym))
 				}
@@ -266,10 +266,10 @@ func assigner(lv *Compiler, rv *Compiler) Compiler {
 			nodes[1].Eval(code) // Evaluate right value
 			nodes[0].Eval(code) // Evaluate left value
 			code.Ins(
-				asm.I().Pop().Rdi(),           // load lv to rdi
-				asm.I().Pop().Rax(),           // load rv to rax
-				asm.I().Mov().Rdi().P().Rax(), // mv rax to [lv]
-				asm.I().Push().Rax())
+				i().Pop().Rdi(),           // load lv to rdi
+				i().Pop().Rax(),           // load rv to rax
+				i().Mov().Rdi().P().Rax(), // mv rax to [lv]
+				i().Push().Rax())
 		})
 }
 
@@ -320,12 +320,12 @@ func ifer(condition *Compiler, body *Compiler) Compiler {
 
 			label := fmt.Sprintf("iflabel_%d", ifcount)
 			code.Ins(
-				asm.I().Pop().Rax(),
-				asm.I().Cmp().Rax().Val(0),
-				asm.I().Je(label))
+				i().Pop().Rax(),
+				i().Cmp().Rax().Val(0),
+				i().Je(label))
 
 			nodes[1].Eval(code)
-			code.Ins(asm.I().Label(label))
+			code.Ins(i().Label(label))
 			ifcount++
 		})
 }
@@ -340,24 +340,24 @@ func whiler(condition, body *Compiler) Compiler {
 			begin, end := fmt.Sprintf("while_begin_%d", whilecount),
 				fmt.Sprintf("while_end_%d", whilecount)
 
-			code.Ins(asm.I().Label(begin))
+			code.Ins(i().Label(begin))
 
 			// Evaluate the condition part.
 			nodes[0].Eval(code)
 
 			// If the condition part is evaluated as zero, then go to end.
 			code.Ins(
-				asm.I().Pop().Rax(),
-				asm.I().Cmp().Rax().Val(0),
-				asm.I().Je(end))
+				i().Pop().Rax(),
+				i().Cmp().Rax().Val(0),
+				i().Je(end))
 
 			// Evaluate the body part.
 			nodes[1].Eval(code)
 
 			// Unconditional jump to begin.
-			code.Ins(asm.I().Jmp(begin))
+			code.Ins(i().Jmp(begin))
 
-			code.Ins(asm.I().Label(end))
+			code.Ins(i().Label(end))
 
 			whilecount++
 		})
@@ -383,16 +383,16 @@ func forer(conditions, body *Compiler) Compiler {
 			// Evaluate the initialization part.
 			nodes[0].Eval(code)
 
-			code.Ins(asm.I().Label(begin))
+			code.Ins(i().Label(begin))
 
 			// Evaluate the condition part.
 			nodes[1].Eval(code)
 
 			// If condition part is evaluated as zero, then go to end.
 			code.Ins(
-				asm.I().Pop().Rax(),
-				asm.I().Cmp().Rax().Val(0),
-				asm.I().Je(end))
+				i().Pop().Rax(),
+				i().Cmp().Rax().Val(0),
+				i().Je(end))
 
 			// Evaluate the body part.
 			nodes[3].Eval(code)
@@ -401,9 +401,9 @@ func forer(conditions, body *Compiler) Compiler {
 			nodes[2].Eval(code)
 
 			// Unconditional jump to begin.
-			code.Ins(asm.I().Jmp(begin))
+			code.Ins(i().Jmp(begin))
 
-			code.Ins(asm.I().Label(end))
+			code.Ins(i().Label(end))
 
 			forcount++
 		})
@@ -411,16 +411,16 @@ func forer(conditions, body *Compiler) Compiler {
 
 func funcCaller(term *Compiler) Compiler {
 	funcName := andIdt().And(CVar, true).
-		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(asm.I().Call(nodes[0].Token.Val())) })
+		SetEval(func(nodes []*ast.AST, code asm.Code) { code.Ins(i().Call(nodes[0].Token.Val())) })
 	commed := andIdt().And(Com, false).And(term, true).Trans(ast.PopSingle)
 
 	argRegs := []asm.Dested{
-		asm.I().Mov().Rdi(),
-		asm.I().Mov().Rsi(),
-		asm.I().Mov().Rdx(),
-		asm.I().Mov().Rcx(),
-		asm.I().Mov().R8(),
-		asm.I().Mov().R9(),
+		i().Mov().Rdi(),
+		i().Mov().Rsi(),
+		i().Mov().Rdx(),
+		i().Mov().Rcx(),
+		i().Mov().R8(),
+		i().Mov().R9(),
 	}
 
 	args := orIdt().Or(andIdt().And(term, true).Rep(&commed).SetEval(
@@ -430,12 +430,12 @@ func funcCaller(term *Compiler) Compiler {
 			}
 
 			// Evaluate args from right to left and push into the stack.
-			for i := range nodes {
-				nodes[len(nodes)-i-1].Eval(code)
+			for j := range nodes {
+				nodes[len(nodes)-j-1].Eval(code)
 			}
 
-			for i := range nodes {
-				code.Ins(asm.I().Pop().Rax()).Ins(argRegs[i].Rax())
+			for j := range nodes {
+				code.Ins(i().Pop().Rax()).Ins(argRegs[j].Rax())
 			}
 		}).P(), &null)
 
@@ -444,7 +444,7 @@ func funcCaller(term *Compiler) Compiler {
 			checkNodeCount(nodes, 2)
 			nodes[1].Eval(code)
 			nodes[0].Eval(code)
-			code.Ins(asm.I().Push().Rax())
+			code.Ins(i().Push().Rax())
 		})
 }
 
@@ -452,17 +452,17 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 	var st = new(SymTable)
 
 	argRegs := []asm.Fin{
-		asm.I().Mov().Rax().P().Rdi(),
-		asm.I().Mov().Rax().P().Rsi(),
-		asm.I().Mov().Rax().P().Rdx(),
-		asm.I().Mov().Rax().P().Rcx(),
-		asm.I().Mov().Rax().P().R8(),
-		asm.I().Mov().Rax().P().R9(),
+		i().Mov().Rax().P().Rdi(),
+		i().Mov().Rax().P().Rsi(),
+		i().Mov().Rax().P().Rdx(),
+		i().Mov().Rax().P().Rcx(),
+		i().Mov().Rax().P().R8(),
+		i().Mov().Rax().P().R9(),
 	}
 
 	funcLabel := andIdt().And(CVar, true).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
-			code.Ins(asm.I().Label(nodes[0].Token.Val()))
+			code.Ins(i().Label(nodes[0].Token.Val()))
 		})
 	argv := andIdt().And(varDeclarer(st).P(), true).SetEval(func(nodes []*ast.AST, code asm.Code) {
 
@@ -475,8 +475,8 @@ func funcDefiner(bodyer func(*SymTable) Compiler) Compiler {
 		}
 
 		code.Ins(
-			asm.I().Mov().Rax().Rbp(),
-			asm.I().Sub().Rax().Val(v.Addr),
+			i().Mov().Rax().Rbp(),
+			i().Sub().Rax().Val(v.Addr),
 			argRegs[v.Seq])
 	})
 	args := orIdt().Or(andIdt().And(&argv, true).
