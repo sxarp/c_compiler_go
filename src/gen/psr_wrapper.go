@@ -77,3 +77,5 @@ var (
 	Sys   = tokenTypeToComp(&tok.TSys)
 	EOF   = (*Compiler)(psr.EOF)
 )
+
+var i = asm.I
