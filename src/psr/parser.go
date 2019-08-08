@@ -78,6 +78,10 @@ func (lhsp Parser) And(rhsp *Parser, addNode bool) Parser {
 
 }
 
+func (lhsp Parser) Seq(rhsp *Parser) Parser {
+	return lhsp.And(rhsp, false)
+}
+
 func (lhsp Parser) Or(rhsp *Parser) Parser {
 
 	call := func(t []tok.Token) (ast.AST, []tok.Token) {
