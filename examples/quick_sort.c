@@ -1,10 +1,15 @@
 int main(){
   int size; size = 20;
   int array[20]; int mem[20];
+
   setInputArray(array, size);
-  parray(array, size);
+
+  printArray(array, size);
+
   qsort(array, 0, size, mem);
-  parray(array, size);
+
+  printArray(array, size);
+
   return 0;
 }
 
@@ -46,7 +51,7 @@ int setInputArray(int* array, int size){
   return 0;
 }
 
-int parray(int* array, int size){
+int printArray(int* array, int size){
   int i; int v;
   for(i=0;i<size;i=i+1){
     v = *(array + i);
