@@ -16,8 +16,12 @@ var null = andIdt()
 func p(c Compiler) psr.Parser    { return psr.Parser(c) }
 func pp(c *Compiler) *psr.Parser { return (*psr.Parser)(c) }
 
-func (c Compiler) And(cp *Compiler, addNode bool) Compiler {
-	return Compiler(p(c).And(pp(cp), addNode))
+func (c Compiler) And(cp *Compiler) Compiler {
+	return Compiler(p(c).And(pp(cp), true))
+}
+
+func (c Compiler) Seq(cp *Compiler) Compiler {
+	return Compiler(p(c).And(pp(cp), false))
 }
 
 func (c Compiler) Or(cps ...*Compiler) Compiler {

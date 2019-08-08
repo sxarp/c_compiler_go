@@ -157,7 +157,7 @@ func TestLter(t *testing.T) {
 		},
 	} {
 		lt := lter(&numInt)
-		compCode(t, andIdt().And(&numInt, true).And(&lt, true), c)
+		compCode(t, andIdt().And(&numInt).And(&lt), c)
 	}
 }
 
@@ -618,7 +618,7 @@ func TestEqer(t *testing.T) {
 		},
 	} {
 		eq := eqer(&numInt)
-		psr := andIdt().And(&numInt, true).And(&eq, true)
+		psr := andIdt().And(&numInt).And(&eq)
 		compCode(t, psr, c)
 	}
 
@@ -659,7 +659,7 @@ func TestNeqer(t *testing.T) {
 		},
 	} {
 		neq := neqer(&numInt)
-		psr := andIdt().And(&numInt, true).And(&neq, true)
+		psr := andIdt().And(&numInt).And(&neq)
 		compCode(t, psr, c)
 	}
 
@@ -729,7 +729,7 @@ func TestIfer(t *testing.T) {
 		ret := returner(&numInt)
 		iF := ifer(&numInt, &ret)
 		ifRet := orIdt().Or(&iF).Or(&ret)
-		compCode(t, andIdt().And(&prologue, true).Rep(&ifRet), c)
+		compCode(t, andIdt().And(&prologue).Rep(&ifRet), c)
 	}
 
 }
