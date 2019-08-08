@@ -157,7 +157,7 @@ func TestLter(t *testing.T) {
 		},
 	} {
 		lt := lter(&numInt)
-		compCode(t, andIdt().And(&numInt).And(&lt), c)
+		compCode(t, ai().And(&numInt).And(&lt), c)
 	}
 }
 
@@ -618,7 +618,7 @@ func TestEqer(t *testing.T) {
 		},
 	} {
 		eq := eqer(&numInt)
-		psr := andIdt().And(&numInt).And(&eq)
+		psr := ai().And(&numInt).And(&eq)
 		compCode(t, psr, c)
 	}
 
@@ -659,7 +659,7 @@ func TestNeqer(t *testing.T) {
 		},
 	} {
 		neq := neqer(&numInt)
-		psr := andIdt().And(&numInt).And(&neq)
+		psr := ai().And(&numInt).And(&neq)
 		compCode(t, psr, c)
 	}
 
@@ -728,8 +728,8 @@ func TestIfer(t *testing.T) {
 		prologue := prologuer(newST())
 		ret := returner(&numInt)
 		iF := ifer(&numInt, &ret)
-		ifRet := orIdt().Or(&iF).Or(&ret)
-		compCode(t, andIdt().And(&prologue).Rep(&ifRet), c)
+		ifRet := oi().Or(&iF).Or(&ret)
+		compCode(t, ai().And(&prologue).Rep(&ifRet), c)
 	}
 
 }
@@ -979,16 +979,16 @@ int idp(int *a, int *b, int c) { return *a + *b + c}
 
 			rvAddr := rvAddrer(&lvIdent)
 			rvIdent := rvIdenter(st, &ptrDeRef)
-			rvVal := orIdt().Or(&rvAddr).Or(&rvIdent)
+			rvVal := oi().Or(&rvAddr).Or(&rvIdent)
 
 			var caller Compiler
-			callerOrIdentOrNum := orIdt().Or(&caller).Or(&rvVal).Or(&numInt)
+			callerOrIdentOrNum := oi().Or(&caller).Or(&rvVal).Or(&numInt)
 			adds := addsubs(&callerOrIdentOrNum)
 			caller = funcCaller(&adds)
 			return returner(&adds)
 		}
 		fd := funcDefiner(body)
-		compCode(t, andIdt().Rep(&fd), c)
+		compCode(t, ai().Rep(&fd), c)
 	}
 }
 
