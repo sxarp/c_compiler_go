@@ -9,9 +9,9 @@ import (
 
 type Compiler psr.Parser
 
-var orIdt = func() Compiler { return Compiler(psr.OrIdent()) }
-var andIdt = func() Compiler { return Compiler(psr.AndIdent()) }
-var null = andIdt()
+var oi = func() Compiler { return Compiler(psr.OrIdent()) }
+var ai = func() Compiler { return Compiler(psr.AndIdent()) }
+var null = ai()
 
 func p(c Compiler) psr.Parser    { return psr.Parser(c) }
 func pp(c *Compiler) *psr.Parser { return (*psr.Parser)(c) }
