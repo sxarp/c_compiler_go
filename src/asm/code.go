@@ -52,9 +52,17 @@ func (is *Insts) ForEachInst(f func(Fin)) {
 	}
 }
 
+func (is *Insts) Show() string {
+	s := ""
+	for _, is := range is.insts {
+		s = s + is.Str() + "\n"
+	}
+	return s
+}
+
 func (b *Builder) Str() string {
 	b.insts.ForEachInst(func(i Fin) {
-		b.code.Write(i.str())
+		b.code.Write(i.Str())
 	})
 
 	return b.code.Str()
