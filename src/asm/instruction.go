@@ -130,11 +130,11 @@ type Dested Ins
 
 type Fin Ins
 
-func (i Fin) str() string { return Ins(i).str() }
+func (i Fin) Str() string { return Ins(i).str() }
 
-func (i *Fin) Eq(rhs *Fin) bool { return i.str() == rhs.str() }
+func (i *Fin) Eq(rhs *Fin) bool { return i.Str() == rhs.Str() }
 
-func (i Fin) Write(sb *str.Builder) { sb.Write(i.str()) }
+func (i Fin) Write(sb *str.Builder) { sb.Write(i.Str()) }
 
 func I() Ini { return Ini{} }
 
