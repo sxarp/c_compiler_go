@@ -16,12 +16,18 @@ var null = ai()
 func p(c Compiler) psr.Parser    { return psr.Parser(c) }
 func pp(c *Compiler) *psr.Parser { return (*psr.Parser)(c) }
 
-func (c Compiler) And(cp *Compiler) Compiler {
-	return Compiler(p(c).And(pp(cp), true))
+func (c Compiler) And(cps ...*Compiler) Compiler {
+	for _, cp := range cps {
+		c = Compiler(p(c).And(pp(cp), true))
+	}
+	return c
 }
 
-func (c Compiler) Seq(cp *Compiler) Compiler {
-	return Compiler(p(c).And(pp(cp), false))
+func (c Compiler) Seq(cps ...*Compiler) Compiler {
+	for _, cp := range cps {
+		c = Compiler(p(c).And(pp(cp), false))
+	}
+	return c
 }
 
 func (c Compiler) Or(cps ...*Compiler) Compiler {
