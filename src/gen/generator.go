@@ -167,7 +167,7 @@ func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
 		nodes[1].Eval(code)
 	}
 
-	ptrAdded := ai().Seq(Mul).Seq(LPar).And(ptr).
+	ptrAdded := ai().Seq(Mul, LPar).And(ptr).
 		Seq(Plus).And(addv).Seq(RPar).SetEval(fetchSize)
 	array := ai().And(ptr).Seq(LSbr).And(addv).Seq(RSbr).SetEval(fetchSize)
 	ptrArray := oi().Or(&ptrAdded, &array)
@@ -228,7 +228,7 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 			}
 		})
 
-	return ai().And(&astrs).And(CVar).And(loadValer(st, &sym).P()).SetEval(
+	return ai().And(&astrs, CVar, loadValer(st, &sym).P()).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			sym = nodes[1].Token.Val()
 			symType := st.RefOf(sym).Type
@@ -245,7 +245,7 @@ func ptrDeRefer(st *SymTable, lvIdent *Compiler) Compiler {
 }
 
 func rvIdenter(st *SymTable, ptrDeRef *Compiler) Compiler {
-	return ai().And(ptrDeRef).And(&deRefer).SetEval(
+	return ai().And(ptrDeRef, &deRefer).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(code)
@@ -284,7 +284,7 @@ func varDeclarer(st *SymTable) Compiler {
 			}
 		})
 
-	return ai().Seq(Intd).And(&astrs).And(CVar).SetEval(
+	return ai().Seq(Intd).And(&astrs, CVar).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(nil)
@@ -305,15 +305,14 @@ func arrayDeclarer(varDeclare *Compiler, st *SymTable) Compiler {
 
 func returner(term *Compiler) Compiler {
 	return ai().Seq(Ret).
-		And(oi().Or(ai().And(term).And(&popRax).P(), &null).P()).
-		And(&epilogue)
+		And(oi().Or(ai().And(term, &popRax).P(), &null).P(), &epilogue)
 }
 
 var ifcount int
 
 func ifer(condition *Compiler, body *Compiler) Compiler {
-	return ai().Seq(If).Seq(LPar).And(condition).Seq(RPar).
-		Seq(LBrc).And(body).Seq(RBrc).SetEval(
+	return ai().Seq(If, LPar).And(condition).Seq(RPar, LBrc).
+		And(body).Seq(RBrc).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(code)
@@ -333,8 +332,8 @@ func ifer(condition *Compiler, body *Compiler) Compiler {
 var whilecount int
 
 func whiler(condition, body *Compiler) Compiler {
-	return ai().Seq(While).Seq(LPar).And(condition).Seq(RPar).
-		Seq(LBrc).And(body).Seq(RBrc).SetEval(
+	return ai().Seq(While, LPar).And(condition).Seq(RPar, LBrc).
+		And(body).Seq(RBrc).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			begin, end := fmt.Sprintf("while_begin_%d", whilecount),
@@ -368,45 +367,44 @@ var forcount int
 func forer(conditions, body *Compiler) Compiler {
 	nullCond := oi().Or(conditions, &null)
 	semiCond := ai().And(&nullCond).Seq(Semi)
-	ini := ai().And(&semiCond).And(&popRax)
-	incr := ai().And(&nullCond).And(&popRax)
+	ini := ai().And(&semiCond, &popRax)
+	incr := ai().And(&nullCond, &popRax)
 
 	return ai().Seq(For).Seq(LPar).
-		And(&ini).And(&semiCond).And(&incr).Seq(RPar).
-		Seq(LBrc).And(body).Seq(RBrc).SetEval(
-		func(nodes []*ast.AST, code asm.Code) {
-			checkNodeCount(nodes, 4)
+		And(&ini, &semiCond).And(&incr).Seq(RPar, LBrc).And(body).
+		Seq(RBrc).SetEval(func(nodes []*ast.AST, code asm.Code) {
+		checkNodeCount(nodes, 4)
 
-			begin, end := fmt.Sprintf("for_begin_%d", forcount),
-				fmt.Sprintf("for_end_%d", forcount)
+		begin, end := fmt.Sprintf("for_begin_%d", forcount),
+			fmt.Sprintf("for_end_%d", forcount)
 
-			// Evaluate the initialization part.
-			nodes[0].Eval(code)
+		// Evaluate the initialization part.
+		nodes[0].Eval(code)
 
-			code.Ins(i().Label(begin))
+		code.Ins(i().Label(begin))
 
-			// Evaluate the condition part.
-			nodes[1].Eval(code)
+		// Evaluate the condition part.
+		nodes[1].Eval(code)
 
-			// If condition part is evaluated as zero, then go to end.
-			code.Ins(
-				i().Pop().Rax(),
-				i().Cmp().Rax().Val(0),
-				i().Je(end))
+		// If condition part is evaluated as zero, then go to end.
+		code.Ins(
+			i().Pop().Rax(),
+			i().Cmp().Rax().Val(0),
+			i().Je(end))
 
-			// Evaluate the body part.
-			nodes[3].Eval(code)
+		// Evaluate the body part.
+		nodes[3].Eval(code)
 
-			// Evaluate the increment part.
-			nodes[2].Eval(code)
+		// Evaluate the increment part.
+		nodes[2].Eval(code)
 
-			// Unconditional jump to begin.
-			code.Ins(i().Jmp(begin))
+		// Unconditional jump to begin.
+		code.Ins(i().Jmp(begin))
 
-			code.Ins(i().Label(end))
+		code.Ins(i().Label(end))
 
-			forcount++
-		})
+		forcount++
+	})
 }
 
 func funcCaller(term *Compiler) Compiler {
@@ -514,7 +512,7 @@ func Generator() Compiler {
 		adds, muls, ptrAdd := addsubs(&muls), muldivs(&term), ptrAdder(st, &val, &expr)
 
 		term = oi().Or(
-			ai().And(&ptrAdd).And(&deRefer).P(),
+			ai().And(&ptrAdd, &deRefer).P(),
 			&numInt, syscaller(&expr).P(), funcCaller(&expr).P(), &val,
 			ai().Seq(LPar).And(&adds).Seq(RPar).Trans(ast.PopSingle).P())
 		expr = oi().Or(assigner(oi().Or(&ptrAdd, &ptrRef).P(), &expr).P(), eqneqs(&adds).P())
@@ -524,7 +522,7 @@ func Generator() Compiler {
 			ifer(&expr, &bodies).P(), forer(&expr, &bodies).P(),
 			whiler(&expr, &bodies).P(), returner(&semi).P(),
 			ai().And(arrayDeclarer(varDeclarer(st).P(), st).P()).Seq(Semi).P(),
-			ai().And(&semi).And(&popRax).P()).P())
+			ai().And(&semi, &popRax).P()).P())
 
 		return ai().And(&bodies)
 	}
