@@ -20,7 +20,7 @@ var numInt = ai().And(Int).
 		code.Ins(i().Push().Val(n))
 	})
 
-func binaryOperator(term *Compiler, operator *Compiler, insts []asm.Fin) Compiler {
+func binaryOperator(term, operator *Compiler, insts []asm.Fin) Compiler {
 	return ai().Seq(operator).And(term).
 		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 1)
@@ -150,7 +150,7 @@ func loadValer(st *SymTable, sym *string) Compiler {
 		})
 }
 
-func ptrAdder(st *SymTable, ptr *Compiler, addv *Compiler) Compiler {
+func ptrAdder(st *SymTable, ptr, addv *Compiler) Compiler {
 	var size int
 
 	fetchSize := func(nodes []*ast.AST, code asm.Code) {
@@ -258,7 +258,7 @@ func rvIdenter(st *SymTable, ptrDeRef *Compiler) Compiler {
 		})
 }
 
-func assigner(lv *Compiler, rv *Compiler) Compiler {
+func assigner(lv, rv *Compiler) Compiler {
 	return ai().And(lv).Seq(Subs).And(rv).SetEval(
 		func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
@@ -310,10 +310,9 @@ func returner(term *Compiler) Compiler {
 
 var ifcount int
 
-func ifer(condition *Compiler, body *Compiler) Compiler {
-	return ai().Seq(If, LPar).And(condition).Seq(RPar, LBrc).
-		And(body).Seq(RBrc).SetEval(
-		func(nodes []*ast.AST, code asm.Code) {
+func ifer(condition, body *Compiler) Compiler {
+	return ai().Seq(If, LPar).And(condition).Seq(RPar, LBrc).And(body).Seq(RBrc).
+		SetEval(func(nodes []*ast.AST, code asm.Code) {
 			checkNodeCount(nodes, 2)
 			nodes[0].Eval(code)
 
