@@ -48,34 +48,24 @@ func OrIdent() Parser {
 }
 
 func (lhsp Parser) And(rhsp *Parser, addNode bool) Parser {
-
 	call := func(t []tok.Token) (ast.AST, []tok.Token) {
-
 		lhs, lhst := lhsp.Call(t)
-
 		if lhs.Fail() {
 			return ast.Fail, t
 
 		}
-
 		rhs, rhst := rhsp.Call(lhst)
-
 		if rhs.Fail() {
 			return ast.Fail, t
 
 		}
-
 		if addNode {
 			lhs.AppendNode(rhs)
 
 		}
-
 		return lhs, rhst
-
 	}
-
 	return Parser{Call: call}
-
 }
 
 func (lhsp Parser) Seq(rhsp *Parser) Parser {
@@ -83,67 +73,47 @@ func (lhsp Parser) Seq(rhsp *Parser) Parser {
 }
 
 func (lhsp Parser) Or(rhsp *Parser) Parser {
-
 	call := func(t []tok.Token) (ast.AST, []tok.Token) {
-
 		if lhs, lhst := lhsp.Call(t); !lhs.Fail() {
 			return lhs, lhst
-
 		}
-
 		if rhs, rhst := rhsp.Call(t); !rhs.Fail() {
 			return rhs, rhst
 		}
-
 		return ast.Fail, t
-
 	}
 
 	return Parser{Call: call}
 }
 
 func (lhsp Parser) Rep(rhsp *Parser) Parser {
-
-	call := func(lest []tok.Token) (ast.AST, []tok.Token) {
-
+	call := func(rest []tok.Token) (ast.AST, []tok.Token) {
 		var node ast.AST
-
-		lhs, lhst := lhsp.Call(lest)
+		lhs, lhst := lhsp.Call(rest)
 		if lhs.Fail() {
-			return lhs, lest
+			return lhs, rest
 		}
-
-		node, lest = lhs, lhst
-
+		node, rest = lhs, lhst
 		for {
-
-			rhs, rhst := rhsp.Call(lest)
-
+			rhs, rhst := rhsp.Call(rest)
 			if rhs.Fail() {
-				return node, lest
+				return node, rest
 			}
-			lest = rhst
+			rest = rhst
 			node.AppendNode(rhs)
 		}
-
 	}
-
 	return Parser{Call: call}
 }
 
 func (lhsp Parser) Trans(f func(ast.AST) ast.AST) Parser {
-
 	call := func(t []tok.Token) (ast.AST, []tok.Token) {
-
 		lhs, lhst := lhsp.Call(t)
-
 		if lhs.Fail() {
 			return lhs, t
 		}
-
 		return f(lhs), lhst
 	}
-
 	return Parser{Call: call}
 }
 
