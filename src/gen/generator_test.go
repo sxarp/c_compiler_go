@@ -710,28 +710,10 @@ func TestIfer(t *testing.T) {
 			true,
 			"1",
 		},
-
-		{
-			"if(0) { return 1} if(1) { return 3} return 4",
-			[]asm.Fin{},
-			true,
-			"3",
-		},
-
-		{
-			"if(0) { return 1} if(0) { return 3} return 4",
-			[]asm.Fin{},
-			true,
-			"4",
-		},
 	} {
-		prologue := prologuer(newST())
-		ret := returner(&numInt)
-		iF := ifer(&numInt, &ret)
-		ifRet := oi().Or(&iF).Or(&ret)
-		compCode(t, ai().And(&prologue).Rep(&ifRet), c)
+		prologue, ret := prologuer(newST()), returner(&numInt)
+		compCode(t, ai().And(&prologue, ifer(&numInt, &ret).P(), &ret), c)
 	}
-
 }
 
 func TestWhiler(t *testing.T) {
