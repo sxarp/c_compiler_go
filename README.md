@@ -39,44 +39,42 @@ docker-compose exec main /bin/bash -c "go run ./src < ./examples/quick_sort.c > 
 
 # Organization of directories
 
-* [src](https://github.com/sxarp/c_compiler_go/tree/master/src)
-
 Entry point of compiler where `main.go` resides.
 
-* [src/asm](https://github.com/sxarp/c_compiler_go/tree/master/src/asm)
+* [src](https://github.com/sxarp/c_compiler_go/tree/master/src)
 
 Definition of the DSL for generating x86-64 assembly.
 
-* [src/ast](https://github.com/sxarp/c_compiler_go/tree/master/src/ast)
+* [src/asm](https://github.com/sxarp/c_compiler_go/tree/master/src/asm)
 
 Definition for the struct of AST.
 
-* [src/em](https://github.com/sxarp/c_compiler_go/tree/master/src/em)
+* [src/ast](https://github.com/sxarp/c_compiler_go/tree/master/src/ast)
 
 Helpers to show error messages when parsers fail.
 
-* **[src/gen](https://github.com/sxarp/c_compiler_go/tree/master/src/gen)**
+* [src/em](https://github.com/sxarp/c_compiler_go/tree/master/src/em)
 
 **The Compiler is defined here using the DSLs and with the supports of other packages.**
 
-* [src/h](https://github.com/sxarp/c_compiler_go/tree/master/src/h)
+* **[src/gen](https://github.com/sxarp/c_compiler_go/tree/master/src/gen)**
 
 Helpers for testing.
 
-* [src/psr](https://github.com/sxarp/c_compiler_go/tree/master/src/psr)
+* [src/h](https://github.com/sxarp/c_compiler_go/tree/master/src/h)
 
 Definition of the parsers.
 
-* [src/str](https://github.com/sxarp/c_compiler_go/tree/master/src/str)
-
+* [src/psr](https://github.com/sxarp/c_compiler_go/tree/master/src/psr)
 
 Utilities to write assembly codes.
 
-* [src/tok](https://github.com/sxarp/c_compiler_go/tree/master/src/tok)
-
+* [src/str](https://github.com/sxarp/c_compiler_go/tree/master/src/str)
 
 Definition of the tokenizer.
 
-* [src/tp](https://github.com/sxarp/c_compiler_go/tree/master/src/tp)
+* [src/tok](https://github.com/sxarp/c_compiler_go/tree/master/src/tok)
 
 Definition of the type system.
+
+* [src/tp](https://github.com/sxarp/c_compiler_go/tree/master/src/tp)
